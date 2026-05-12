@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: 99 102 241;
+    --color-primary-fg: 255 255 255;
+    --color-canvas: 248 250 252;
+    --color-surface: 255 255 255;
+    --color-elevated: 255 255 255;
+    --color-border: 226 232 240;
+    --color-muted: 100 116 139;
+    --color-foreground: 15 23 42;
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.25rem;
+    --radius-card: 0.75rem;
+    --radius-panel: 1rem;
+  }
+
+  .dark {
+    --color-primary: 129 140 248;
+    --color-primary-fg: 15 23 42;
+    --color-canvas: 2 6 23;
+    --color-surface: 15 23 42;
+    --color-elevated: 30 41 59;
+    --color-border: 51 65 85;
+    --color-muted: 148 163 184;
+    --color-foreground: 248 250 252;
+  }
+
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-canvas text-foreground min-h-screen font-sans;
+  }
+}
