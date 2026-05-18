@@ -5,11 +5,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
-import { AuthShell } from '../../components/auth/AuthShell.jsx'
-import { FloatingField } from '../../components/auth/FloatingField.jsx'
-import { PasswordStrengthMeter } from '../../components/auth/PasswordStrengthMeter.jsx'
-import api from '../../lib/axios.js'
-import { resetPasswordFormSchema } from '../../features/auth/authSchemas.js'
+import { AuthShell } from '../../components/auth/AuthShell'
+import { FloatingField } from '../../components/auth/FloatingField'
+import { PasswordStrengthMeter } from '../../components/auth/PasswordStrengthMeter'
+import api from '../../lib/axios'
+import { resetPasswordFormSchema } from '../../features/auth/authSchemas'
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams()

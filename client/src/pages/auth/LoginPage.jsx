@@ -6,10 +6,10 @@ import toast from 'react-hot-toast'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { AuthShell } from '../../components/auth/AuthShell.jsx'
-import { FloatingField } from '../../components/auth/FloatingField.jsx'
-import { useAuthStore } from '../../store/authStore.js'
-import { loginFormSchema } from '../../features/auth/authSchemas.js'
+import { AuthShell } from '../../components/auth/AuthShell'
+import { FloatingField } from '../../components/auth/FloatingField'
+import { useAuthStore } from '../../store/authStore'
+import { loginFormSchema } from '../../features/auth/authSchemas'
 
 export default function LoginPage() {
   const navigate = useNavigate()

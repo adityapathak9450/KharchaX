@@ -5,11 +5,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import toast from 'react-hot-toast'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useState } from 'react'
-import { AuthShell } from '../../components/auth/AuthShell.jsx'
-import { FloatingField } from '../../components/auth/FloatingField.jsx'
-import { PasswordStrengthMeter } from '../../components/auth/PasswordStrengthMeter.jsx'
-import { useAuthStore } from '../../store/authStore.js'
-import { registerFormSchema } from '../../features/auth/authSchemas.js'
+import { AuthShell } from '../../components/auth/AuthShell'
+import { FloatingField } from '../../components/auth/FloatingField'
+import { PasswordStrengthMeter } from '../../components/auth/PasswordStrengthMeter'
+import { useAuthStore } from '../../store/authStore'
+import { registerFormSchema } from '../../features/auth/authSchemas'
 
 export default function RegisterPage() {
   const navigate = useNavigate()

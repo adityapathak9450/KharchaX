@@ -24,16 +24,37 @@ app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
 const windowMs = Number(process.env.RATE_LIMIT_WINDOW) || 15 * 60 * 1000
-const max = Number(process.env.RATE_LIMIT_MAX) || 100
+const max = Number(process.env.RATE_LIMIT_MAX) || 1000
+
+// Separate rate limiters for different API types
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Higher limit for auth endpoints
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
+const generalLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 1000, // Much higher limit for general APIs
+  standardHeaders: true,
+  legacyHeaders: false,
+})
 
 app.use(
   '/api',
-  rateLimit({
-    windowMs,
-    max,
-    standardHeaders: true,
-    legacyHeaders: false,
-  }),
+  (req, res, next) => {
+    // Skip rate limiting for dashboard APIs
+    if (req.path.startsWith('/analytics/') || 
+        req.path.startsWith('/wallets') || 
+        req.path.startsWith('/transactions') || 
+        req.path.startsWith('/budgets') || 
+        req.path.startsWith('/categories')) {
+      return next()
+    }
+    
+    return generalLimiter(req, res, next)
+  },
 )
 
 app.use('/api', routes)

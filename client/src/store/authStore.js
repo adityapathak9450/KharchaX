@@ -82,20 +82,35 @@ export const useAuthStore = create(
       },
 
       refreshToken: async () => {
-        const { data } = await axios.post(
-          `${baseURL}/auth/refresh-token`,
-          {},
-          { withCredentials: true, headers: { 'Content-Type': 'application/json' } },
-        )
-        if (!data.success) {
-          throw new Error(data.message || 'Refresh failed')
+        console.log('AuthStore: Attempting token refresh...')
+        try {
+          const { data } = await axios.post(
+            `${baseURL}/auth/refresh-token`,
+            {},
+            { withCredentials: true, headers: { 'Content-Type': 'application/json' } },
+          )
+          console.log('AuthStore: Refresh response:', data)
+          if (!data.success) {
+            console.log('AuthStore: Refresh failed:', data.message)
+            throw new Error(data.message || 'Refresh failed')
+          }
+          const accessToken = data?.data?.accessToken
+          if (!accessToken) {
+            console.log('AuthStore: No access token in response')
+            throw new Error('No access token returned')
+          }
+          console.log('AuthStore: Token refresh successful')
+          set({ accessToken, isAuthenticated: true })
+          return accessToken
+        } catch (error) {
+          console.log('AuthStore: Token refresh error:', error)
+          set({
+            user: null,
+            accessToken: null,
+            isAuthenticated: false,
+          })
+          throw error
         }
-        const accessToken = data?.data?.accessToken
-        if (!accessToken) {
-          throw new Error('No access token returned')
-        }
-        set({ accessToken, isAuthenticated: true })
-        return accessToken
       },
     }),
     {

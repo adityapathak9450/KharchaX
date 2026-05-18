@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { VaultLogo } from '../components/auth/VaultLogo.jsx'
+import { VaultLogo } from '../components/auth/VaultLogo'
 
 export default function LandingPage() {
   return (

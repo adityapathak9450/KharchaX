@@ -5,10 +5,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { Mail, CheckCircle2 } from 'lucide-react'
-import { AuthShell } from '../../components/auth/AuthShell.jsx'
-import { FloatingField } from '../../components/auth/FloatingField.jsx'
-import api from '../../lib/axios.js'
-import { forgotPasswordFormSchema } from '../../features/auth/authSchemas.js'
+import { AuthShell } from '../../components/auth/AuthShell'
+import { FloatingField } from '../../components/auth/FloatingField'
+import api from '../../lib/axios'
+import { forgotPasswordFormSchema } from '../../features/auth/authSchemas'
 
 export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false)
