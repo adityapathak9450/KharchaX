@@ -24,6 +24,9 @@ export default function SharedWalletDetailPage() {
 
   const queryClient = useQueryClient()
 
+  // 1. Safe parsing of local storage at the top level
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+
   const { data: sharedWalletData, isLoading, refetch } = useQuery({
     queryKey: ['shared-wallet', id],
     queryFn: () => apiClient.get(`/shared-wallets/${id}`).then(res => res.data.data),
@@ -252,11 +255,12 @@ export default function SharedWalletDetailPage() {
         </div>
       )}
 
+      {/* 2. Fixed Members Tab Content Block */}
       {activeTab === 'members' && (
         <MemberList
           members={sharedWallet.members || []}
           onRemoveMember={handleRemoveMember}
-          isOwner={sharedWallet.createdBy?._id === sharedWallet.createdBy}
+          isOwner={sharedWallet.createdBy?._id === currentUser?._id}
         />
       )}
 

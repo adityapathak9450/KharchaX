@@ -44,7 +44,7 @@ export const getSharedWallets = asyncHandler(async (req, res) => {
 })
 
 export const createSharedWallet = asyncHandler(async (req, res) => {
-  const { name, walletId, memberEmails } = req.body
+  const { name, walletId } = req.body
 
   // Check if wallet exists and belongs to user
   const wallet = await Wallet.findOne({
@@ -56,27 +56,63 @@ export const createSharedWallet = asyncHandler(async (req, res) => {
     throw new AppError('Wallet not found or you don\'t have permission', 404)
   }
 
+  // Make wallet shared
+  wallet.isShared = true
+
+  // Add owner to wallet members if not already added
+  const ownerExists = wallet.members.some(
+    member => member.userId.toString() === req.user.id
+  )
+
+  if (!ownerExists) {
+    wallet.members.push({
+      userId: req.user.id,
+      role: 'owner'
+    })
+  }
+
+  await wallet.save()
+
+  // Create shared wallet document
   const sharedWallet = await SharedWallet.create({
     name,
     walletId,
     createdBy: req.user.id,
-    members: [{ userId: req.user.id, role: 'owner' }]
+    members: [
+      {
+        userId: req.user.id,
+        role: 'owner'
+      }
+    ]
   })
 
   // Log activity
-  await activityService.logActivity(req.user.id, 'created_shared_wallet', 'sharedWallet', sharedWallet._id, {
-    walletName: wallet.name,
-    sharedWalletName: name
-  })
+  try {
+    await activityService.logActivity(
+      req.user.id,
+      'created_shared_wallet',
+      'sharedWallet',
+      sharedWallet._id,
+      {
+        walletName: wallet.name,
+        sharedWalletName: name
+      }
+    )
+  } catch (error) {
+    console.error('Activity log failed:', error.message)
+  }
 
   const populatedSharedWallet = await SharedWallet.findById(sharedWallet._id)
     .populate('walletId', 'name type balance')
     .populate('createdBy', 'name email')
+    .populate('members.userId', 'name email')
 
   res.status(201).json({
     success: true,
     message: 'Shared wallet created successfully',
-    data: { sharedWallet: populatedSharedWallet }
+    data: {
+      sharedWallet: populatedSharedWallet
+    }
   })
 })
 
@@ -102,10 +138,18 @@ export const joinSharedWallet = asyncHandler(async (req, res) => {
   // Add user as member
   sharedWallet.members.push({
     userId: req.user.id,
-    role: 'member'
+    role: 'viewer'
   })
 
   await sharedWallet.save()
+ const wallet = await Wallet.findById(sharedWallet.walletId._id);
+
+wallet.members.push({
+  userId: req.user.id,
+  role: 'viewer'
+});
+
+await wallet.save();
 
   // Log activity
   await activityService.logActivity(req.user.id, 'joined_shared_wallet', 'wallet', sharedWallet._id, {
@@ -141,8 +185,24 @@ export const addMemberToSharedWallet = asyncHandler(async (req, res) => {
     throw new AppError('User is already a member', 400)
   }
 
-  sharedWallet.members.push({ userId, role })
-  await sharedWallet.save()
+sharedWallet.members.push({ userId, role })
+await sharedWallet.save()
+
+// ALSO add to actual wallet
+const wallet = await Wallet.findById(sharedWallet.walletId)
+
+const alreadyExists = wallet.members.some(
+  member => member.userId.toString() === userId
+)
+
+if (!alreadyExists) {
+  wallet.members.push({
+    userId,
+    role
+  })
+
+  await wallet.save()
+}
 
   // Log activity
   await activityService.logActivity(req.user.id, 'added_member_shared_wallet', 'wallet', sharedWallet._id, {
@@ -187,6 +247,14 @@ export const removeMemberFromSharedWallet = asyncHandler(async (req, res) => {
   )
 
   await sharedWallet.save()
+  // Remove from actual wallet too
+const wallet = await Wallet.findById(sharedWallet.walletId)
+
+wallet.members = wallet.members.filter(
+  member => member.userId.toString() !== memberId
+)
+
+await wallet.save()
 
   // Log activity
   await activityService.logActivity(req.user.id, 'removed_member_shared_wallet', 'wallet', sharedWallet._id, {
@@ -214,6 +282,7 @@ export const getSharedWalletTransactions = asyncHandler(async (req, res) => {
       { 'members.userId': req.user.id }
     ]
   }).populate('walletId')
+  .populate('members.userId', 'name email')
 
   if (!sharedWallet) {
     throw new AppError('Shared wallet not found or access denied', 404)
@@ -257,6 +326,7 @@ export const getSharedWalletSettlements = asyncHandler(async (req, res) => {
       { 'members.userId': req.user.id }
     ]
   }).populate('walletId')
+  .populate('members.userId', 'name email')
 
   if (!sharedWallet) {
     throw new AppError('Shared wallet not found or access denied', 404)
@@ -297,8 +367,8 @@ export const getSharedWalletSettlements = asyncHandler(async (req, res) => {
         userId,
         userName: member.userId.name || 'Unknown',
         balance,
-        owes: balance > 0 ? balance - perPersonShare : 0,
-        owed: balance < 0 ? Math.abs(balance) : 0
+        shouldReceive: balance > 0 ? balance : 0,
+shouldPay: balance < 0 ? Math.abs(balance) : 0
       }
     }
   })
@@ -306,5 +376,31 @@ export const getSharedWalletSettlements = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: { settlements }
+  })
+})
+
+export const getSharedWalletById = asyncHandler(async (req, res) => {
+  const { id } = req.params
+
+  const sharedWallet = await SharedWallet.findOne({
+    _id: id,
+    $or: [
+      { createdBy: req.user.id },
+      { 'members.userId': req.user.id }
+    ]
+  })
+    .populate('walletId', 'name type balance')
+    .populate('createdBy', 'name email')
+    .populate('members.userId', 'name email')
+
+  if (!sharedWallet) {
+    throw new AppError('Shared wallet not found', 404)
+  }
+
+  res.json({
+    success: true,
+    data: {
+      sharedWallet
+    }
   })
 })

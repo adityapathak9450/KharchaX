@@ -14,15 +14,15 @@ const activityLogSchema = new mongoose.Schema(
       trim: true,
       maxlength: [120, 'Action is too long'],
     },
-    entity: {
-      type: String,
-      enum: {
-        values: ['transaction', 'wallet', 'budget', 'recurring'],
-        message: '{VALUE} is not a valid entity type',
-      },
-      required: true,
-      index: true,
-    },
+   entity: {
+  type: String,
+  enum: {
+    values: ['transaction', 'wallet', 'budget', 'recurring', 'sharedWallet'],
+    message: '{VALUE} is not a valid entity type',
+  },
+  required: true,
+  index: true,
+},
     entityId: {
       type: mongoose.Schema.Types.ObjectId,
       required: [true, 'entityId is required'],

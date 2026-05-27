@@ -9,6 +9,7 @@ import reportRoutes from './report.routes.js'
 import uploadRoutes from './upload.routes.js'
 import notificationRoutes from './notification.routes.js'
 import sharedWalletRoutes from './sharedWallet.routes.js'
+import recurringPaymentRoutes from './recurringPayment.routes.js'  // ← ADD THIS
 
 const router = Router()
 
@@ -30,5 +31,6 @@ router.use('/reports', reportRoutes)
 router.use('/upload', uploadRoutes)
 router.use('/notifications', notificationRoutes)
 router.use('/shared-wallets', sharedWalletRoutes)
+router.use('/recurring-payments', recurringPaymentRoutes)  // ← ADD THIS
 
 export default router

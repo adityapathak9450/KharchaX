@@ -171,7 +171,27 @@ export const createTransaction = async (req, res, next) => {
     });
 
     // Update wallet balance
-    const wallet = await Wallet.findOne({ _id: validatedData.wallet, userId: req.user.id });
+    const wallet = await Wallet.findById(validatedData.wallet);
+
+if (!wallet) {
+  return res.status(404).json({
+    success: false,
+    message: 'Wallet not found'
+  });
+}
+
+const isOwner = wallet.userId.toString() === req.user.id;
+
+const isMember = wallet.members?.some(
+  member => member.userId.toString() === req.user.id
+);
+
+if (!isOwner && !isMember) {
+  return res.status(403).json({
+    success: false,
+    message: 'Access denied'
+  });
+}
     if (!wallet) {
       return res.status(404).json({
         success: false,
@@ -253,7 +273,7 @@ export const updateTransaction = async (req, res, next) => {
     const validatedData = updateTransactionSchema.parse(req.body);
 
     // Find existing transaction
-    const existingTransaction = await Transaction.findOne({ _id: id, userId: req.user.id });
+   const existingTransaction = await Transaction.findById(id);
     if (!existingTransaction) {
       return res.status(404).json({
         success: false,
@@ -271,13 +291,27 @@ export const updateTransaction = async (req, res, next) => {
     const diff = newEffect - oldEffect;
 
     // Update wallet balance
-    const wallet = await Wallet.findOne({ _id: existingTransaction.wallet, userId: req.user.id });
-    if (!wallet) {
-      return res.status(404).json({
-        success: false,
-        message: 'Wallet not found'
-      });
-    }
+   const wallet = await Wallet.findById(existingTransaction.wallet);
+
+if (!wallet) {
+  return res.status(404).json({
+    success: false,
+    message: 'Wallet not found'
+  });
+}
+
+const isOwner = wallet.userId.toString() === req.user.id;
+
+const isMember = wallet.members?.some(
+  member => member.userId.toString() === req.user.id
+);
+
+if (!isOwner && !isMember) {
+  return res.status(403).json({
+    success: false,
+    message: 'Access denied'
+  });
+}
 
     wallet.balance += diff;
 
@@ -334,7 +368,7 @@ export const deleteTransaction = async (req, res, next) => {
     const userId = req.user.id;
 
     // Find transaction
-    const transaction = await Transaction.findOne({ _id: id, userId });
+    const transaction = await Transaction.findById(id);
     if (!transaction) {
       return res.status(404).json({
         success: false,
@@ -343,13 +377,27 @@ export const deleteTransaction = async (req, res, next) => {
     }
 
     // Update wallet balance (reverse the transaction effect)
-    const wallet = await Wallet.findOne({ _id: transaction.wallet, userId });
-    if (!wallet) {
-      return res.status(404).json({
-        success: false,
-        message: 'Wallet not found'
-      });
-    }
+    const wallet = await Wallet.findById(transaction.wallet);
+
+if (!wallet) {
+  return res.status(404).json({
+    success: false,
+    message: 'Wallet not found'
+  });
+}
+
+const isOwner = wallet.userId.toString() === req.user.id;
+
+const isMember = wallet.members?.some(
+  member => member.userId.toString() === req.user.id
+);
+
+if (!isOwner && !isMember) {
+  return res.status(403).json({
+    success: false,
+    message: 'Access denied'
+  });
+}
 
     if (transaction.type === 'income') {
       wallet.balance -= transaction.amount;

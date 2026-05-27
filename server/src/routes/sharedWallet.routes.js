@@ -8,6 +8,7 @@ import {
   removeMemberFromSharedWallet,
   getSharedWalletTransactions,
   getSharedWalletSettlements,
+  getSharedWalletById,
 } from '../controllers/sharedWallet.controller.js'
 
 const router = Router()
@@ -26,6 +27,7 @@ router.use(authenticate)
 router.get('/',              getSharedWallets)
 router.post('/',             createSharedWallet)
 router.post('/join',        joinSharedWallet)
+router.get('/:id', getSharedWalletById)
 router.post('/:id/members',  addMemberToSharedWallet)
 router.delete('/:id/members/:memberId', removeMemberFromSharedWallet)
 router.get('/:id/transactions', getSharedWalletTransactions)

@@ -49,6 +49,8 @@ app.use(
         req.path.startsWith('/wallets') || 
         req.path.startsWith('/transactions') || 
         req.path.startsWith('/budgets') || 
+          req.path.startsWith('/recurring-payments')
+        ||
         req.path.startsWith('/categories')) {
       return next()
     }
