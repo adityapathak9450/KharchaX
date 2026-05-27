@@ -2,7 +2,10 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Wallet, DollarSign, Calendar, Users } from 'lucide-react'
 
-export function SharedExpenseForm({ onClose, onSubmit, members }) {
+export function SharedExpenseForm({   onClose,
+  onSubmit,
+  members,
+  wallets }) {
   const [formData, setFormData] = useState({
     amount: '',
     description: '',

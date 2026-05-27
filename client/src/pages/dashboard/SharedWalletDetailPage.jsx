@@ -33,11 +33,6 @@ export default function SharedWalletDetailPage() {
     enabled: !!id
   })
 
-  const { data: transactionsData } = useQuery({
-    queryKey: ['shared-wallet-transactions', id],
-    queryFn: () => apiClient.get(`/shared-wallets/${id}/transactions`).then(res => res.data.data),
-    enabled: !!id
-  })
 
   const { data: settlementsData } = useQuery({
     queryKey: ['shared-wallet-settlements', id],
@@ -55,10 +50,35 @@ export default function SharedWalletDetailPage() {
       toast.error(error.response?.data?.message || 'Failed to remove member')
     }
   })
+  const addExpenseMutation = useMutation({
+  mutationFn: (data) =>
+    apiClient.post(`/shared-wallets/${id}/expenses`, data),
+
+  onSuccess: () => {
+    toast.success('Expense added successfully')
+
+    queryClient.invalidateQueries({
+      queryKey: ['shared-wallet', id]
+    })
+
+    queryClient.invalidateQueries({
+      queryKey: ['shared-wallet-settlements', id]
+    })
+
+    setShowExpenseForm(false)
+  },
+
+  onError: (error) => {
+    toast.error(
+      error.response?.data?.message || 'Failed to add expense'
+    )
+  }
+})
 
   const sharedWallet = sharedWalletData?.sharedWallet
-  const transactions = transactionsData?.transactions ?? []
+ 
   const settlements = settlementsData?.settlements ?? {}
+  const expenses = sharedWallet?.expenses || []
 
   const copyInviteCode = () => {
     if (sharedWallet?.inviteCode) {
@@ -101,7 +121,7 @@ export default function SharedWalletDetailPage() {
   }
 
   const memberCount = sharedWallet.memberCount || sharedWallet.members?.length || 0
-  const balance = sharedWallet.walletId?.balance || 0
+ const balance = sharedWallet.totalBalance || 0
   const walletName = sharedWallet.walletId?.name || 'Unknown Wallet'
   const inviteCode = sharedWallet.inviteCode || ''
 
@@ -229,25 +249,44 @@ export default function SharedWalletDetailPage() {
           {/* Recent Transactions */}
           <div className="p-5 rounded-xl bg-white/[0.03] border border-white/[0.08]">
             <h3 className="text-lg font-semibold text-white mb-4">Recent Expenses</h3>
-            {transactions.length === 0 ? (
+            {expenses.length === 0 ? (
               <p className="text-sm text-gray-500">No expenses yet</p>
             ) : (
               <div className="space-y-3">
-                {transactions.slice(0, 5).map((transaction) => (
-                  <div
-                    key={transaction._id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-white/5"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-white">{transaction.description || 'Expense'}</p>
-                      <p className="text-xs text-gray-500">
-                        {transaction.userId?.name || 'Unknown'} • {dayjs(transaction.date).fromNow()}
-                      </p>
-                    </div>
-                    <p className="text-sm font-semibold text-white">
-                      {formatCurrency(transaction.amount)}
-                    </p>
-                  </div>
+                {expenses
+  .slice()
+  .reverse()
+  .slice(0, 5)
+  .map((expense) => (
+                <div
+  key={expense._id}
+  className="flex items-center justify-between p-3 rounded-lg bg-white/5"
+>
+  <div>
+    <p className="text-sm font-medium text-white">
+      {expense.description || 'Expense'}
+    </p>
+
+    <p className="text-xs text-gray-500">
+      Paid by{' '}
+      {
+        sharedWallet.members.find(
+          m =>
+            (m.userId?._id || m.userId).toString() ===
+            expense.paidBy?.toString()
+        )?.userId?.name || 'Unknown'
+      }
+
+      {' • '}
+
+      {dayjs(expense.date).fromNow()}
+    </p>
+  </div>
+
+  <p className="text-sm font-semibold text-white">
+    {formatCurrency(expense.amount)}
+  </p>
+</div>
                 ))}
               </div>
             )}
@@ -283,13 +322,12 @@ export default function SharedWalletDetailPage() {
 
       {showExpenseForm && (
         <SharedExpenseForm
-          onClose={() => setShowExpenseForm(false)}
-          onSubmit={() => {
-            setShowExpenseForm(false)
-            refetch()
-          }}
-          members={sharedWallet.members || []}
-        />
+  onClose={() => setShowExpenseForm(false)}
+  onSubmit={(data) => {
+    addExpenseMutation.mutate(data)
+  }}
+  members={sharedWallet.members || []}
+/>
       )}
     </div>
   )

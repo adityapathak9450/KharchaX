@@ -9,6 +9,7 @@ import {
   getSharedWalletTransactions,
   getSharedWalletSettlements,
   getSharedWalletById,
+  addSharedExpense
 } from '../controllers/sharedWallet.controller.js'
 
 const router = Router()
@@ -32,5 +33,6 @@ router.post('/:id/members',  addMemberToSharedWallet)
 router.delete('/:id/members/:memberId', removeMemberFromSharedWallet)
 router.get('/:id/transactions', getSharedWalletTransactions)
 router.get('/:id/settlements', getSharedWalletSettlements)
+router.post('/:id/expenses', authenticate, addSharedExpense)
 
 export default router

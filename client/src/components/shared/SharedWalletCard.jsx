@@ -8,7 +8,7 @@ dayjs.extend(relativeTime)
 
 export function SharedWalletCard({ sharedWallet, copiedCode, onCopyCode }) {
   const memberCount = sharedWallet.memberCount || sharedWallet.members?.length || 0
-  const balance = sharedWallet.walletId?.balance || 0
+  const balance = sharedWallet.totalBalance || 0
   const walletName = sharedWallet.walletId?.name || 'Unknown Wallet'
   const inviteCode = sharedWallet.inviteCode || ''
   const createdAt = sharedWallet.createdAt ? dayjs(sharedWallet.createdAt).fromNow() : ''

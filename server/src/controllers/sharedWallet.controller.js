@@ -289,8 +289,9 @@ export const getSharedWalletTransactions = asyncHandler(async (req, res) => {
   }
 
   const transactions = await Transaction.find({
-    wallet: sharedWallet.walletId._id
-  })
+  wallet: sharedWallet.walletId._id,
+  createdAt: { $gte: sharedWallet.sharedStartedAt }
+})
     .populate('category', 'name color icon')
     .populate('userId', 'name email')
     .sort({ date: -1, createdAt: -1 })
@@ -318,64 +319,93 @@ export const getSharedWalletTransactions = asyncHandler(async (req, res) => {
 export const getSharedWalletSettlements = asyncHandler(async (req, res) => {
   const { id } = req.params
 
-  // Check if user is member of shared wallet
-  const sharedWallet = await SharedWallet.findOne({
-    _id: id,
-    $or: [
-      { createdBy: req.user.id },
-      { 'members.userId': req.user.id }
-    ]
-  }).populate('walletId')
-  .populate('members.userId', 'name email')
+  const sharedWallet = await SharedWallet.findById(id)
+    .populate('members.userId', 'name email')
 
   if (!sharedWallet) {
-    throw new AppError('Shared wallet not found or access denied', 404)
+    throw new AppError('Shared wallet not found', 404)
   }
 
-  // Calculate settlements based on transactions
-  const transactions = await Transaction.find({
-    wallet: sharedWallet.walletId._id,
-    type: 'expense'
-  }).populate('userId', 'name email')
-
-  const settlements = {}
-  const totalExpenses = {}
-
-  // Calculate each member's share
-  transactions.forEach(transaction => {
-    const userId = transaction.userId._id.toString()
-    const amount = transaction.amount
-
-    if (!totalExpenses[userId]) {
-      totalExpenses[userId] = 0
-    }
-    totalExpenses[userId] += amount
-  })
-
-  // Calculate settlements (simplified - equal split)
-  const memberCount = sharedWallet.members.length
-  const totalAmount = Object.values(totalExpenses).reduce((sum, amount) => sum + amount, 0)
-  const perPersonShare = totalAmount / memberCount
+  const balances = {}
 
   sharedWallet.members.forEach(member => {
-    const userId = member.userId.toString()
-    const userTotal = totalExpenses[userId] || 0
-    const balance = userTotal - perPersonShare
+    const memberId = member.userId._id.toString()
 
-    if (balance !== 0) {
-      settlements[userId] = {
-        userId,
-        userName: member.userId.name || 'Unknown',
-        balance,
-        shouldReceive: balance > 0 ? balance : 0,
-shouldPay: balance < 0 ? Math.abs(balance) : 0
-      }
+    balances[memberId] = {
+      name: member.userId.name,
+      balance: 0
     }
   })
+
+  sharedWallet.expenses.forEach(expense => {
+    const amount = Number(expense.amount)
+
+    const paidBy = expense.paidBy.toString()
+
+    const splitMembers = expense.splitBetween.map(id =>
+      id.toString()
+    )
+
+    const splitAmount = amount / splitMembers.length
+
+    balances[paidBy].balance += amount
+
+    splitMembers.forEach(memberId => {
+      balances[memberId].balance -= splitAmount
+    })
+  })
+
+  const creditors = []
+  const debtors = []
+
+  Object.entries(balances).forEach(([userId, data]) => {
+    if (data.balance > 0.01) {
+      creditors.push({
+        userId,
+        name: data.name,
+        amount: data.balance
+      })
+    } else if (data.balance < -0.01) {
+      debtors.push({
+        userId,
+        name: data.name,
+        amount: Math.abs(data.balance)
+      })
+    }
+  })
+
+  const settlements = []
+
+  let i = 0
+  let j = 0
+
+  while (i < debtors.length && j < creditors.length) {
+    const debtor = debtors[i]
+    const creditor = creditors[j]
+
+    const settledAmount = Math.min(
+      debtor.amount,
+      creditor.amount
+    )
+
+    settlements.push({
+      from: debtor.name,
+      to: creditor.name,
+      amount: settledAmount.toFixed(2)
+    })
+
+    debtor.amount -= settledAmount
+    creditor.amount -= settledAmount
+
+    if (debtor.amount < 0.01) i++
+    if (creditor.amount < 0.01) j++
+  }
 
   res.json({
     success: true,
-    data: { settlements }
+    data: {
+      settlements
+    }
   })
 })
 
@@ -402,5 +432,39 @@ export const getSharedWalletById = asyncHandler(async (req, res) => {
     data: {
       sharedWallet
     }
+  })
+})
+
+export const addSharedExpense = asyncHandler(async (req, res) => {
+  const { id } = req.params
+
+  const {
+    amount,
+    description,
+    paidBy,
+    splitBetween
+  } = req.body
+
+  const sharedWallet = await SharedWallet.findById(id)
+
+  if (!sharedWallet) {
+    throw new AppError('Shared wallet not found', 404)
+  }
+
+  sharedWallet.expenses.push({
+    amount,
+    description,
+    paidBy,
+    splitBetween,
+    date: new Date()
+  })
+
+  sharedWallet.totalBalance += Number(amount)
+
+  await sharedWallet.save()
+
+  res.status(201).json({
+    success: true,
+    data: sharedWallet
   })
 })

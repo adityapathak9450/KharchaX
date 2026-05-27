@@ -19,6 +19,11 @@ const expenseEntrySchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    paidFromWallet: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'Wallet',
+  required: true,
+},
     splitBetween: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'User',
@@ -110,6 +115,10 @@ const sharedWalletSchema = new mongoose.Schema(
       minlength: [8, 'Invite code is too short'],
       maxlength: [32, 'Invite code is too long'],
     },
+    sharedStartedAt: {
+  type: Date,
+  default: Date.now
+},
     expenses: {
       type: [expenseEntrySchema],
       default: [],
