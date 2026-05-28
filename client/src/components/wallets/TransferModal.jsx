@@ -30,7 +30,7 @@ const transferSchema = z.object({
 export function TransferModal({ wallets, onClose, onSuccess }) {
   const [showConfirmation, setShowConfirmation] = useState(false)
   
-  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm({
+  const { register, handleSubmit, formState: { errors }, watch, setValue, getValues } = useForm({
     resolver: zodResolver(transferSchema),
     defaultValues: {
       fromWalletId: '',
@@ -64,8 +64,13 @@ export function TransferModal({ wallets, onClose, onSuccess }) {
   }
 
   const confirmTransfer = () => {
-    const data = watchedValues
-    transferMutation.mutate(data)
+    const data = getValues()
+    transferMutation.mutate({
+      fromWalletId: data.fromWalletId,
+      toWalletId: data.toWalletId,
+      amount: Number(data.amount),
+      notes: data.notes || undefined
+    })
   }
 
   const handleSwapWallets = () => {
@@ -289,10 +294,10 @@ export function TransferModal({ wallets, onClose, onSuccess }) {
                 </button>
                 <button
                   onClick={confirmTransfer}
-                  disabled={transferMutation.isLoading}
+                  disabled={transferMutation.isPending}
                   className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {transferMutation.isLoading ? 'Transferring...' : 'Confirm Transfer'}
+                  {transferMutation.isPending ? 'Transferring...' : 'Confirm Transfer'}
                 </button>
               </div>
             </div>

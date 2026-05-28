@@ -1,5 +1,6 @@
 import Wallet from '../models/Wallet.model.js'
 import Transaction from '../models/Transaction.model.js'
+import Category from '../models/Category.model.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { AppError } from '../middleware/error.middleware.js'
 import activityService from '../services/activity.service.js'
@@ -224,24 +225,29 @@ export const transferFunds = asyncHandler(async (req, res) => {
     throw new AppError('Insufficient balance in source wallet', 400)
   }
 
-  // Update wallet balances
-  fromWallet.balance -= amount
-  toWallet.balance += amount
+  // Retrieve the seeded default "Others" category to satisfy Transaction schema's required category field
+  const othersCategory = await Category.findOne({ userId: null, name: 'Others', isDefault: true })
+  if (!othersCategory) {
+    throw new AppError('Default transfer category not found. Please ensure categories are seeded.', 500)
+  }
 
-  await Promise.all([
-    fromWallet.save(),
-    toWallet.save()
-  ])
-
-  // Create transfer transactions
+  // All database writes must happen inside a single ACID transaction
   const session = await Wallet.startSession()
   session.startTransaction()
 
   try {
+    // Update wallet balances within the transaction
+    fromWallet.balance -= amount
+    toWallet.balance += amount
+
+    await fromWallet.save({ session })
+    await toWallet.save({ session })
+
+    // Create transfer transaction records within the transaction
     await Transaction.create([{
       amount,
       type: 'expense',
-      category: null, // Transfer category
+      category: othersCategory._id,
       wallet: fromWalletId,
       userId: req.user.id,
       notes: notes || `Transfer to ${toWallet.name}`,
@@ -252,7 +258,7 @@ export const transferFunds = asyncHandler(async (req, res) => {
     await Transaction.create([{
       amount,
       type: 'income',
-      category: null, // Transfer category
+      category: othersCategory._id,
       wallet: toWalletId,
       userId: req.user.id,
       notes: notes || `Transfer from ${fromWallet.name}`,
@@ -262,7 +268,7 @@ export const transferFunds = asyncHandler(async (req, res) => {
 
     await session.commitTransaction()
 
-    // Log transfer activity for real-time updates
+    // Log transfer activity for real-time updates (outside session — non-critical)
     await activityService.logTransferActivity(req.user.id, fromWallet, toWallet, amount, {
       notes: notes || `Transfer from ${fromWallet.name} to ${toWallet.name}`,
       ipAddress: req.ip,
