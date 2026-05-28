@@ -4,6 +4,8 @@ import {
   generateReportController,
   downloadReport,
   getReportStatus,
+  deleteReport
+  ,
 } from '../controllers/report.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 
@@ -23,5 +25,7 @@ router.get('/:id/download', downloadReport);
 
 // GET /api/reports/:id/status - Get report status
 router.get('/:id/status', getReportStatus);
+
+router.delete('/:id', deleteReport);
 
 export default router;

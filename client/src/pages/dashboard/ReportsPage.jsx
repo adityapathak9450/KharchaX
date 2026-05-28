@@ -48,34 +48,67 @@ export default function ReportsPage() {
 
 const handleDownload = async (report) => {
   try {
+    toast.loading('Preparing download...', { id: 'dl' })
+
+    // CSV download
     if (report.format === 'csv' && report.fileUrl) {
-      // CSV — direct Cloudinary URL still works fine
       window.open(report.fileUrl, '_blank')
+
+      toast.success('Downloaded!', { id: 'dl' })
       return
     }
 
-    // PDF — fetch buffer from backend and trigger browser download
+    // PDF download
     const response = await apiClient.get(
       `/reports/${report._id}/download`,
-      { responseType: 'blob' }
+      {
+        responseType: 'blob',
+      }
     )
 
-    const blob = new Blob([response.data], { type: 'application/pdf' })
-    const url = URL.createObjectURL(blob)
+    // Get filename from backend header
+    const disposition = response.headers['content-disposition']
+
+    let fileName = `kharchaX-${report.type}-report.pdf`
+
+    if (disposition && disposition.includes('filename=')) {
+      fileName = disposition
+        .split('filename=')[1]
+        .replace(/"/g, '')
+        .trim()
+    }
+
+    // Create downloadable blob
+    const blob = new Blob(
+      [response.data],
+      { type: 'application/pdf' }
+    )
+
+    const url = window.URL.createObjectURL(blob)
+
+    // Trigger browser download
     const a = document.createElement('a')
     a.href = url
-    a.download = `kharchaX-${report.type}-report.pdf`
+    a.download = fileName
+
     document.body.appendChild(a)
     a.click()
+
     document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    window.URL.revokeObjectURL(url)
+
+    toast.success('Downloaded!', { id: 'dl' })
 
   } catch (error) {
-    toast.error('Failed to download report')
-    console.error(error)
+    console.error('Download failed:', error)
+
+    toast.error(
+      error?.response?.data?.message ||
+      'Failed to download report',
+      { id: 'dl' }
+    )
   }
 }
-
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
