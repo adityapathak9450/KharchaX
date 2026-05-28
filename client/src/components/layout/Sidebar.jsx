@@ -79,6 +79,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <NavLink
                   key={item.path}
                   to={item.path}
+                 end={item.path === '/dashboard'}
                   onClick={onClose}
                   className={({ isActive }) =>
                     isActive

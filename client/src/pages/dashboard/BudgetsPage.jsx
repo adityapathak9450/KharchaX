@@ -69,8 +69,10 @@ export default function BudgetsPage() {
       status: 'all'
     })
   }
-
-  const activeFiltersCount = Object.values(filters).filter(v => v && v !== 'all').length
+  
+const activeFiltersCount =
+  (filters.category ? 1 : 0) +
+  (filters.status !== 'all' ? 1 : 0)
 
   // Calculate stats
   const totalBudget = budgets?.reduce((sum, budget) => sum + budget.amount, 0) || 0

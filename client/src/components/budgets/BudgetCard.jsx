@@ -1,5 +1,21 @@
 import { motion } from 'framer-motion'
-import { MoreHorizontal, AlertTriangle, TrendingUp, Target, Calendar } from 'lucide-react'
+import {
+  MoreHorizontal,
+  AlertTriangle,
+  TrendingUp,
+  Target,
+  Calendar,
+  ShoppingBag,
+  HeartPulse,
+  Utensils,
+  Car,
+  Home,
+  Gamepad2,
+  Plane,
+  GraduationCap,
+  Briefcase,
+} from 'lucide-react'
+
 import { formatCurrency, formatDate } from '../../utils/format.js'
 
 export function BudgetCard({ budget, onDelete, onEdit }) {
@@ -9,6 +25,20 @@ export function BudgetCard({ budget, onDelete, onEdit }) {
   const remaining = budget.amount - budget.spent
   const progressColor = isExceeded ? 'bg-red-500' : shouldAlert ? 'bg-yellow-500' : 'bg-green-500'
   const progressBgColor = isExceeded ? 'bg-red-500/20' : shouldAlert ? 'bg-yellow-500/20' : 'bg-green-500/20'
+  const iconMap = {
+  'shopping-bag': ShoppingBag,
+  'heart-pulse': HeartPulse,
+  utensils: Utensils,
+  car: Car,
+  home: Home,
+  gamepad2: Gamepad2,
+  plane: Plane,
+  'graduation-cap': GraduationCap,
+  briefcase: Briefcase,
+}
+
+const IconComponent =
+  iconMap[budget.category?.icon] || Target
 
   return (
     <motion.div
@@ -43,7 +73,7 @@ export function BudgetCard({ budget, onDelete, onEdit }) {
             className="flex items-center justify-center w-10 h-10 rounded-xl text-lg"
             style={{ backgroundColor: `${budget.color}20`, color: budget.color }}
           >
-            {budget.category?.icon || <Target className="h-5 w-5" />}
+            <IconComponent className="h-5 w-5" />
           </div>
           <div>
             <h4 className="font-semibold text-white">{budget.name}</h4>
