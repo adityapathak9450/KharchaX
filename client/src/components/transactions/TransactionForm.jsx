@@ -101,17 +101,26 @@ export function TransactionForm({ transaction, categories, wallets, onClose, onS
       toast.error(error.response?.data?.message || 'Failed to delete transaction')
     }
   })
+const onSubmit = (data) => {
+  if (isSubmitting) return;
 
-  const onSubmit = (data) => {
-    if (isSubmitting) return;
+  const selectedDate = new Date(data.date)
+  const now = new Date()
 
-    const payload = {
-      ...data,
-      date: new Date(data.date).toISOString(),
-      tags: data.tags || []
-    }
+  selectedDate.setHours(
+    now.getHours(),
+    now.getMinutes(),
+    now.getSeconds(),
+    now.getMilliseconds()
+  )
 
-    console.log('Transaction Form Submit:', payload);
+  const payload = {
+    ...data,
+    date: selectedDate.toISOString(),
+    tags: data.tags || []
+  }
+
+  console.log('Transaction Form Submit:', payload);
     
     if (isEditing) {
       updateTransactionMutation.mutate(payload)

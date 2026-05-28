@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Search, Filter, Download, Upload, MoreHorizontal, ArrowUpRight, ArrowDownRight, Calendar, Wallet, Tag } from 'lucide-react'
+import { Plus,Search,Filter,Download,Upload,MoreHorizontal,ArrowUpRight,ArrowDownRight,Calendar,Wallet, Tag,Receipt,ArrowLeftRight,UtensilsCrossed,ShoppingBag,Car,Home,Landmark,CircleDollarSign,CreditCard,Gift,HeartPulse
+} from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { apiClient } from '../../lib/apiClient'
@@ -25,6 +26,50 @@ export default function TransactionsPage() {
   })
 
   const queryClient = useQueryClient()
+
+  const iconMap = {
+  receipt: Receipt,
+  transfer: ArrowLeftRight,
+  'circle-dot': CircleDollarSign,
+  utensils: UtensilsCrossed,
+  food: UtensilsCrossed,
+  shopping: ShoppingBag,
+  travel: Car,
+  home: Home,
+  bills: Landmark,
+  salary: Wallet,
+  card: CreditCard,
+  gift: Gift,
+  health: HeartPulse
+}
+
+const getTransactionIcon = (iconName) => {
+  return iconMap[iconName?.toLowerCase()] || Wallet
+}
+
+const getTransactionIconStyles = (type, color) => {
+  if (type === 'income') {
+    return {
+      background: 'linear-gradient(135deg, rgba(34,197,94,0.25), rgba(22,163,74,0.15))',
+      border: '1px solid rgba(34,197,94,0.25)',
+      color: '#4ade80'
+    }
+  }
+
+  if (type === 'expense') {
+    return {
+      background: 'linear-gradient(135deg, rgba(239,68,68,0.22), rgba(185,28,28,0.12))',
+      border: '1px solid rgba(239,68,68,0.25)',
+      color: '#f87171'
+    }
+  }
+
+  return {
+    background: `${color || '#6366f1'}20`,
+    border: `1px solid ${color || '#6366f1'}30`,
+    color: color || '#a5b4fc'
+  }
+}
 
   const { data: transactions, isLoading, refetch } = useQuery({
     queryKey: ['transactions', filters, search],
@@ -316,22 +361,40 @@ export default function TransactionsPage() {
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div 
-                          className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
-                          style={{ 
-                            backgroundColor: transaction.category?.color ? `${transaction.category.color}20` : '#37415120',
-                            color: transaction.category?.color || '#9CA3AF'
-                          }}
-                        >
-                          {transaction.category?.icon || '💳'}
-                        </div>
+                       {(() => {
+                        const IconComponent = getTransactionIcon(transaction.category?.icon)
+
+                         return (
+                                 <div
+                         className="w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300"
+                                style={getTransactionIconStyles(
+                                  transaction.type,
+                                transaction.category?.color
+                                )}
+                              >
+                                <IconComponent className="h-5 w-5" />
+                              </div>
+                            )
+                           })()} 
                         <div>
                           <p className="font-medium text-white">
-                            {transaction.notes || 'Untitled Transaction'}
+                             {transaction.notes
+                           ?.replace('Shared settlement paid — ', 'Settlement Paid • ')
+                            ?.replace('Shared settlement received — ', 'Settlement Received • ')
+                            ?.replace('Shared expense: ', '')
+                                  ?.replace('Shared expense in ', 'Expense • ')
+                                || 'Untitled Transaction'}
                           </p>
                           {transaction.tags?.length > 0 && (
                             <div className="flex items-center gap-1 mt-1">
-                              {transaction.tags.slice(0, 2).map((tag, i) => (
+                              {transaction.tags
+                                  .filter(tag => 
+                                   !tag.startsWith('shared-wallet:') &&
+                                    tag !== 'shared-settlement' &&
+                                    tag !== 'shared-expense'
+                                        )
+                                      .slice(0, 2)
+                                       .map((tag, i) => (
                                 <span key={i} className="px-2 py-0.5 bg-white/10 text-xs text-gray-400 rounded-full">
                                   {tag}
                                 </span>
