@@ -46,9 +46,35 @@ export default function ReportsPage() {
     }
   }
 
-  const handleDownload = (fileUrl) => {
-    window.open(fileUrl, '_blank')
+const handleDownload = async (report) => {
+  try {
+    if (report.format === 'csv' && report.fileUrl) {
+      // CSV — direct Cloudinary URL still works fine
+      window.open(report.fileUrl, '_blank')
+      return
+    }
+
+    // PDF — fetch buffer from backend and trigger browser download
+    const response = await apiClient.get(
+      `/reports/${report._id}/download`,
+      { responseType: 'blob' }
+    )
+
+    const blob = new Blob([response.data], { type: 'application/pdf' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `kharchaX-${report.type}-report.pdf`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+
+  } catch (error) {
+    toast.error('Failed to download report')
+    console.error(error)
   }
+}
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

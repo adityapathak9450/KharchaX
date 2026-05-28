@@ -72,9 +72,9 @@ export function ReportCard({ report, onDownload, onDelete }) {
 
       {/* Actions */}
       <div className="flex items-center gap-2 pt-4 border-t border-white/[0.08]">
-        {report.status === 'ready' && report.fileUrl ? (
+        {report.status === 'ready' ? (
           <button
-            onClick={() => onDownload(report.fileUrl)}
+           onClick={() => onDownload(report)}
             className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-500/10 text-indigo-400 text-xs font-medium hover:bg-indigo-500/20 transition-all"
           >
             <Download className="w-3.5 h-3.5" />

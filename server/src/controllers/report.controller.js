@@ -96,32 +96,43 @@ export const downloadReport = async (req, res, next) => {
     const { id } = req.params;
     const userId = req.user.id;
 
-    // Find report by id, verify ownership
     const report = await Report.findOne({ _id: id, userId });
 
     if (!report) {
-      return res.status(404).json({
-        success: false,
-        message: 'Report not found'
-      });
+      return res.status(404).json({ success: false, message: 'Report not found' });
     }
 
     if (report.status !== 'ready') {
-      return res.status(400).json({
-        success: false,
-        message: 'Report not ready yet'
-      });
+      return res.status(400).json({ success: false, message: 'Report not ready yet' });
     }
 
-    if (!report.fileUrl) {
-      return res.status(404).json({
-        success: false,
-        message: 'Report file not available'
-      });
+    // CSV — redirect to Cloudinary URL (plain text, works fine)
+    if (report.format === 'csv' && report.fileUrl) {
+      return res.redirect(report.fileUrl);
     }
 
-    // Redirect to Cloudinary URL for direct download
-    res.redirect(report.fileUrl);
+    // PDF — regenerate and stream buffer directly to browser
+    const { generateReport } = await import('../services/report.service.js');
+
+    const result = await generateReport(
+      report._id,
+      userId,
+      {
+        type: report.type,
+        month: report.period?.month,
+        year: report.period?.year,
+        format: 'pdf',
+      }
+    );
+
+    if (!result.pdfBuffer) {
+      return res.status(500).json({ success: false, message: 'PDF generation failed' });
+    }
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="kharchaX-${report.type}-report.pdf"`);
+    res.setHeader('Content-Length', result.pdfBuffer.length);
+    return res.send(result.pdfBuffer);
 
   } catch (error) {
     next(error);
