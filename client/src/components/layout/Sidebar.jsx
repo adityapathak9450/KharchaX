@@ -47,12 +47,8 @@ const navGroups = [
   },
 ];
 
-const Sidebar = ({ isOpen, onClose, isMobile }) => {
+const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuthStore();
-
-  const handleLogout = () => {
-    logout();
-  };
 
   const getUserInitials = () => {
     if (!user?.name) return 'U';
@@ -66,36 +62,32 @@ const Sidebar = ({ isOpen, onClose, isMobile }) => {
 
   const sidebarContent = (
     <div className="flex flex-col h-full bg-[#0f0f0f] border-r border-white/[0.08]">
-      {/* Logo Section */}
+      {/* Logo */}
       <div className="p-6">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-indigo-400">KharchaX</h1>
-          <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded-full">v1.0</span>
-        </div>
+        <h1 className="text-2xl font-bold text-indigo-400">KharchaX</h1>
       </div>
-      
+
       <div className="h-px bg-white/[0.08] mx-6" />
 
-      {/* Navigation */}
+      {/* Nav */}
       <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
-        {navGroups.map((group, groupIndex) => (
-          <div key={groupIndex}>
-            <h3 className="text-xs font-medium text-gray-500 mb-2 px-3">{group.label}</h3>
+        {navGroups.map((group, i) => (
+          <div key={i}>
+            <h3 className="text-xs text-gray-500 mb-2 px-3">{group.label}</h3>
             <div className="space-y-1">
               {group.items.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  end={item.path === '/dashboard'}
+                  onClick={onClose}
                   className={({ isActive }) =>
                     isActive
-                      ? 'flex items-center gap-3 px-3 py-2 rounded-xl text-sm border-l-2 border-indigo-500 bg-indigo-600/10 text-indigo-400'
-                      : 'flex items-center gap-3 px-3 py-2 rounded-xl text-sm border-l-2 border-transparent text-gray-400 hover:text-white hover:bg-white/5 transition-all'
+                      ? 'flex items-center gap-3 px-3 py-2 text-sm border-l-2 border-indigo-500 bg-indigo-600/10 text-indigo-400'
+                      : 'flex items-center gap-3 px-3 py-2 text-sm border-l-2 border-transparent text-gray-400 hover:text-white hover:bg-white/5'
                   }
-                  onClick={isMobile ? onClose : undefined}
                 >
                   <item.icon className="w-4 h-4" />
-                  <span>{item.label}</span>
+                  {item.label}
                 </NavLink>
               ))}
             </div>
@@ -103,63 +95,51 @@ const Sidebar = ({ isOpen, onClose, isMobile }) => {
         ))}
       </nav>
 
-      {/* User Section */}
+      {/* User */}
       <div className="p-4 border-t border-white/[0.08]">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-medium">
+          <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white">
             {getUserInitials()}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">{user?.name || 'User'}</p>
-            <span className="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">Free Plan</span>
+          <div>
+            <p className="text-sm text-white">{user?.name || 'User'}</p>
           </div>
         </div>
+
         <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
+          onClick={logout}
+          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-400 hover:text-red-400"
         >
           <LogOut className="w-4 h-4" />
-          <span>Logout</span>
+          Logout
         </button>
       </div>
     </div>
   );
 
-  if (isMobile) {
-    return (
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-40"
-              onClick={onClose}
-            />
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed left-0 top-0 h-full w-60 z-50"
-            >
-              {sidebarContent}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    );
-  }
-
   return (
-    <motion.div
-      initial={{ width: 0 }}
-      animate={{ width: 240 }}
-      className="fixed left-0 top-0 h-full w-60 z-30"
-    >
-      {sidebarContent}
-    </motion.div>
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Click outside */}
+          <div
+            className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm"
+            onClick={onClose}
+          />
+
+          {/* Sidebar */}
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{type: "tween",ease: "easeOut",duration: 0.25}}
+            className="fixed top-0 left-0 h-full w-60 z-40"
+          >
+            {sidebarContent}
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 
