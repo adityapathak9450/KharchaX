@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import React, { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import {
   TrendingUp,
   TrendingDown,
@@ -12,6 +12,14 @@ import {
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../../lib/apiClient'
 import { formatCurrency } from '../../utils/format'
+import toast from 'react-hot-toast'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '../../components/ui/select'
 
 import {
   LineChart,
@@ -31,7 +39,12 @@ import {
 } from 'recharts'
 
 export default function AnalyticsPage() {
-  const [timeRange, setTimeRange] = useState('6m')
+  const [timeRange, setTimeRange] = useState('30d')
+  const [isExporting, setIsExporting] = useState(false)
+
+  useEffect(() => {
+    console.log('[analytics] selectedRange changed:', timeRange)
+  }, [timeRange])
 
   /*
     ========================================================
@@ -40,9 +53,11 @@ export default function AnalyticsPage() {
   */
 
   const { data: monthlyTrend, isLoading: trendLoading } = useQuery({
-    queryKey: ['monthly-trend'],
+    queryKey: ['monthly-trend', timeRange],
     queryFn: async () => {
-      const res = await apiClient.get('/analytics/monthly-trend?months=6')
+      const res = await apiClient.get('/analytics/monthly-trend', {
+        params: { range: timeRange }
+      })
       console.log('=== MONTHLY TREND API RESPONSE ===')
       console.log('RESPONSE DATA:', res.data)
       console.log('TREND DATA:', res.data.data?.trend)
@@ -62,9 +77,11 @@ export default function AnalyticsPage() {
   */
 
   const { data: categoryBreakdown, isLoading: categoryLoading } = useQuery({
-    queryKey: ['category-breakdown'],
+    queryKey: ['category-breakdown', timeRange],
     queryFn: async () => {
-      const res = await apiClient.get('/analytics/category-breakdown')
+      const res = await apiClient.get('/analytics/category-breakdown', {
+        params: { range: timeRange }
+      })
       console.log('=== CATEGORY BREAKDOWN API RESPONSE ===')
       console.log('RESPONSE DATA:', res.data)
       console.log('CATEGORIES DATA:', res.data.data?.categories)
@@ -84,9 +101,11 @@ export default function AnalyticsPage() {
   */
 
   const { data: walletUsage, isLoading: walletLoading } = useQuery({
-    queryKey: ['wallet-usage'],
+    queryKey: ['wallet-usage', timeRange],
     queryFn: async () => {
-      const res = await apiClient.get('/analytics/wallet-usage')
+      const res = await apiClient.get('/analytics/wallet-usage', {
+        params: { range: timeRange }
+      })
       console.log('=== WALLET USAGE API RESPONSE ===')
       console.log('RESPONSE DATA:', res.data)
       console.log('WALLET STATS:', res.data.data?.walletStats)
@@ -106,9 +125,11 @@ export default function AnalyticsPage() {
   */
 
   const { data: savingsGrowth, isLoading: savingsLoading } = useQuery({
-    queryKey: ['savings-growth'],
+    queryKey: ['savings-growth', timeRange],
     queryFn: async () => {
-      const res = await apiClient.get('/analytics/savings-growth')
+      const res = await apiClient.get('/analytics/savings-growth', {
+        params: { range: timeRange }
+      })
       console.log('=== SAVINGS GROWTH API RESPONSE ===')
       console.log('RESPONSE DATA:', res.data)
       console.log('GROWTH DATA:', res.data.data?.growth)
@@ -128,9 +149,11 @@ export default function AnalyticsPage() {
   */
 
   const { data: topCategories, isLoading: topLoading } = useQuery({
-    queryKey: ['top-categories'],
+    queryKey: ['top-categories', timeRange],
     queryFn: async () => {
-      const res = await apiClient.get('/analytics/top-categories')
+      const res = await apiClient.get('/analytics/top-categories', {
+        params: { range: timeRange }
+      })
       console.log('=== TOP CATEGORIES API RESPONSE ===')
       console.log('RESPONSE DATA:', res.data)
       console.log('CATEGORIES DATA:', res.data.data?.categories)
@@ -159,6 +182,40 @@ export default function AnalyticsPage() {
     queryClient.invalidateQueries(['all-transactions'])
     queryClient.invalidateQueries(['wallets'])
     queryClient.invalidateQueries(['recent-transactions'])
+  }
+
+  const rangeLabelMap = {
+    '7d': 'last-7-days',
+    '30d': 'last-30-days',
+    '90d': 'last-90-days',
+    '1y': 'last-year',
+  }
+
+  const handleExport = async () => {
+    try {
+      setIsExporting(true)
+      console.log('[analytics] export triggered for range:', timeRange)
+      const response = await apiClient.get('/analytics/export', {
+        params: { range: timeRange },
+        responseType: 'blob',
+      })
+
+      const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `analytics-${rangeLabelMap[timeRange] || timeRange}.csv`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+      toast.success('Analytics exported successfully')
+    } catch (error) {
+      console.error('[analytics] export failed:', error)
+      toast.error(error.response?.data?.message || 'Failed to export analytics')
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   // =========================
@@ -284,26 +341,29 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <motion.select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-colors"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <option value="1m">Last Month</option>
-            <option value="3m">Last 3 Months</option>
-            <option value="6m">Last 6 Months</option>
-            <option value="1y">Last Year</option>
-          </motion.select>
+          <div className="w-44">
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7d">Last 7 days</SelectItem>
+                <SelectItem value="30d">Last 30 days</SelectItem>
+                <SelectItem value="90d">Last 90 days</SelectItem>
+                <SelectItem value="1y">Last year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <motion.button 
+            onClick={handleExport}
+            disabled={isExporting}
             className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <Download className="h-4 w-4" />
-            Export
+            {isExporting ? 'Exporting...' : 'Export'}
           </motion.button>
         </div>
       </motion.div>

@@ -83,6 +83,11 @@ const transactionSchema = new mongoose.Schema(
 
 transactionSchema.index({ date: -1 })
 transactionSchema.index({ userId: 1, wallet: 1, date: -1, category: 1 })
+transactionSchema.index({
+  userId: 1,
+  notes: 'text',
+  tags: 'text'
+});
 
 transactionSchema.virtual('signedAmount').get(function signedAmountGetter() {
   if (this.type === 'expense') return -Math.abs(this.amount)

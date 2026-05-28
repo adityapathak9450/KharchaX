@@ -49,6 +49,7 @@ export function TransactionForm({ transaction, categories, wallets, onClose, onS
       reset()
       // Invalidate all related queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['budgets'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
       queryClient.invalidateQueries({ queryKey: ['wallets'] })
       queryClient.invalidateQueries({ queryKey: ['recent-transactions'] })
@@ -261,9 +262,9 @@ export function TransactionForm({ transaction, categories, wallets, onClose, onS
                   {...register('category')}
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500/50"
                 >
-                  <option value="">Select category</option>
+                  <option className="bg-gray-900 text-white" value="">Select category</option>
                   {categories.map((category) => (
-                    <option key={category._id} value={category._id}>
+                    <option className="bg-gray-900 text-white" key={category._id} value={category._id}>
                       {category.name}
                     </option>
                   ))}
@@ -279,9 +280,9 @@ export function TransactionForm({ transaction, categories, wallets, onClose, onS
                   {...register('wallet')}
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500/50"
                 >
-                  <option value="">Select wallet</option>
+                  <option className="bg-gray-900 text-white" value="">Select wallet</option>
                   {wallets.map((wallet) => (
-                    <option key={wallet._id} value={wallet._id}>
+                    <option className="bg-gray-900 text-white" key={wallet._id} value={wallet._id}>
                       {wallet.name} ({formatCurrency(Number(wallet.balance) || 0)})
                     </option>
                   ))}

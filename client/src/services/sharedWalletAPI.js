@@ -14,5 +14,11 @@ export const sharedWalletAPI = {
     apiClient.get(`/shared-wallets/${id}/transactions`),
 
   settlements: (id) =>
-    apiClient.get(`/shared-wallets/${id}/settlements`)
+    apiClient.get(`/shared-wallets/${id}/settlements`),
+
+  addExpense: (id, data) =>
+    apiClient.post(`/shared-wallets/${id}/expenses`, data),
+
+  settle: (id, data) =>
+    apiClient.post(`/shared-wallets/${id}/settle`, data),
 }

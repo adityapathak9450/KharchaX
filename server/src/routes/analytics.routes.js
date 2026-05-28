@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import {
   getMonthlyTrend,
+  getCategoryBreakdown,
   getTopCategories,
   getSpendingHeatmap,
   getSavingsGrowth,
   getWalletUsage,
   getDashboardStats,
+  exportAnalytics,
 } from '../controllers/analytics.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 
@@ -16,6 +18,9 @@ router.use(authenticate);
 
 // GET /api/analytics/monthly-trend - Get monthly income vs expense trend
 router.get('/monthly-trend', getMonthlyTrend);
+
+// GET /api/analytics/category-breakdown - Get spending by category
+router.get('/category-breakdown', getCategoryBreakdown);
 
 // GET /api/analytics/top-categories - Get top spending categories
 router.get('/top-categories', getTopCategories);
@@ -31,5 +36,8 @@ router.get('/wallet-usage', getWalletUsage);
 
 // GET /api/analytics/dashboard-stats - Get dashboard statistics
 router.get('/dashboard-stats', getDashboardStats);
+
+// GET /api/analytics/export - Export analytics data as CSV
+router.get('/export', exportAnalytics);
 
 export default router;

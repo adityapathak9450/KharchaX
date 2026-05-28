@@ -81,7 +81,7 @@ export function BudgetFilters({ filters, categories, onFilterChange, onClose }) 
               className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50"
             >
               {months.map((month) => (
-                <option key={month.value} value={month.value}>
+                <option className="bg-gray-900 text-white" key={month.value} value={month.value}>
                   {month.label}
                 </option>
               ))}
@@ -97,7 +97,7 @@ export function BudgetFilters({ filters, categories, onFilterChange, onClose }) 
               className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50"
             >
               {years.map((year) => (
-                <option key={year} value={year}>
+                <option className="bg-gray-900 text-white" key={year} value={year}>
                   {year}
                 </option>
               ))}
@@ -112,9 +112,9 @@ export function BudgetFilters({ filters, categories, onFilterChange, onClose }) 
               onChange={(e) => handleFilterChange('category', e.target.value)}
               className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50"
             >
-              <option value="">All Categories</option>
+              <option className="bg-gray-900 text-white" value="">All Categories</option>
               {categories.map((category) => (
-                <option key={category._id} value={category._id}>
+                <option className="bg-gray-900 text-white" key={category._id} value={category._id}>
                   {category.name}
                 </option>
               ))}
@@ -129,10 +129,10 @@ export function BudgetFilters({ filters, categories, onFilterChange, onClose }) 
               onChange={(e) => handleFilterChange('status', e.target.value)}
               className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50"
             >
-              <option value="all">All Status</option>
-              <option value="on-track">On Track</option>
-              <option value="alerting">Alerting</option>
-              <option value="exceeded">Exceeded</option>
+              <option className="bg-gray-900 text-white" value="all">All Status</option>
+              <option className="bg-gray-900 text-white" value="on-track">On Track</option>
+              <option className="bg-gray-900 text-white" value="alerting">Alerting</option>
+              <option className="bg-gray-900 text-white" value="exceeded">Exceeded</option>
             </select>
           </div>
         </div>

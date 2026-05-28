@@ -1,6 +1,27 @@
 import mongoose from 'mongoose'
 import crypto from 'node:crypto'
 
+const splitShareSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    amount: {
+      type: Number,
+      required: true,
+      min: [0, 'Share cannot be negative'],
+    },
+    percentage: {
+      type: Number,
+      min: [0, 'Percentage cannot be negative'],
+      max: [100, 'Percentage cannot exceed 100'],
+    },
+  },
+  { _id: false },
+)
+
 const expenseEntrySchema = new mongoose.Schema(
   {
     amount: {
@@ -20,10 +41,19 @@ const expenseEntrySchema = new mongoose.Schema(
       required: true,
     },
     paidFromWallet: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: 'Wallet',
-  required: true,
-},
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Wallet',
+      default: null,
+    },
+    splitType: {
+      type: String,
+      enum: ['equal', 'percentage', 'exact'],
+      default: 'equal',
+    },
+    splits: {
+      type: [splitShareSchema],
+      default: [],
+    },
     splitBetween: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'User',
@@ -39,6 +69,52 @@ const expenseEntrySchema = new mongoose.Schema(
       type: Date,
       required: true,
       default: () => new Date(),
+    },
+  },
+  { _id: true },
+)
+
+const settlementEntrySchema = new mongoose.Schema(
+  {
+    fromUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    toUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    fromWallet: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Wallet',
+      required: true,
+    },
+    toWallet: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Wallet',
+      required: true,
+    },
+    amount: {
+      type: Number,
+      required: true,
+      min: [0.01, 'Settlement amount must be greater than zero'],
+    },
+    settledBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    date: {
+      type: Date,
+      default: () => new Date(),
+    },
+    note: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'Note is too long'],
+      default: '',
     },
   },
   { _id: true },
@@ -127,6 +203,16 @@ const sharedWalletSchema = new mongoose.Schema(
           return arr.length <= 5000
         },
         message: 'Too many expense entries',
+      },
+    },
+    settlements: {
+      type: [settlementEntrySchema],
+      default: [],
+      validate: {
+        validator(arr) {
+          return arr.length <= 5000
+        },
+        message: 'Too many settlement entries',
       },
     },
   },

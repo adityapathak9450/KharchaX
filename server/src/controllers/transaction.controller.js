@@ -5,6 +5,7 @@ import { createTransactionSchema, updateTransactionSchema } from '../validators/
 import mongoose from 'mongoose';
 import activityService from '../services/activity.service.js';
 import { notificationService } from '../services/notification.service.js';
+import Budget from '../models/Budget.model.js';
 
 export const getTransactions = async (req, res, next) => {
   try {
@@ -44,7 +45,11 @@ export const getTransactions = async (req, res, next) => {
     if (startDate || endDate) {
       $match.date = {};
       if (startDate) $match.date.$gte = new Date(startDate);
-      if (endDate) $match.date.$lte = new Date(endDate);
+      if (endDate) {
+  const end = new Date(endDate);
+  end.setHours(23, 59, 59, 999);
+  $match.date.$lte = end;
+}
     }
 
     if (search) {
@@ -223,14 +228,19 @@ if (!isOwner && !isMember) {
     });
 
     // Check budgets if expense
-    if (validatedData.type === 'expense') {
-      const transactionDate = new Date(validatedData.date);
+    if (savedTransaction.type === 'expense' && savedTransaction.category) {
+      const transactionDate = new Date(savedTransaction.date);
       const month = transactionDate.getMonth() + 1;
       const year = transactionDate.getFullYear();
       
       // Import budgetService dynamically to avoid circular dependencies
       const { default: budgetService } = await import('../services/budget.service.js');
-      const budgetResult = await budgetService.checkBudgets(userId, validatedData.category, month, year);
+      const budgetResult = await budgetService.checkBudgets(
+        savedTransaction.userId,
+        savedTransaction.category,
+        month,
+        year
+      );
       
       // Emit budget alerts if needed
       if (budgetResult.alerts && budgetResult.alerts.length > 0) {
@@ -273,7 +283,10 @@ export const updateTransaction = async (req, res, next) => {
     const validatedData = updateTransactionSchema.parse(req.body);
 
     // Find existing transaction
-   const existingTransaction = await Transaction.findById(id);
+   const existingTransaction = await Transaction.findOne({
+  _id: id,
+  userId
+});
     if (!existingTransaction) {
       return res.status(404).json({
         success: false,
@@ -293,12 +306,7 @@ export const updateTransaction = async (req, res, next) => {
     // Update wallet balance
    const wallet = await Wallet.findById(existingTransaction.wallet);
 
-if (!wallet) {
-  return res.status(404).json({
-    success: false,
-    message: 'Wallet not found'
-  });
-}
+
 
 const isOwner = wallet.userId.toString() === req.user.id;
 
@@ -316,6 +324,9 @@ if (!isOwner && !isMember) {
     wallet.balance += diff;
 
     // Update transaction
+    const oldCategory = existingTransaction.category.toString();
+const oldAmount = existingTransaction.amount;
+const oldType = existingTransaction.type;
     Object.assign(existingTransaction, validatedData);
     if (validatedData.date) {
       existingTransaction.date = new Date(validatedData.date);
@@ -328,9 +339,17 @@ if (!isOwner && !isMember) {
     ]);
 
     // Check budgets if expense and category or amount changed
-    if (validatedData.type === 'expense' && 
-        (validatedData.category !== existingTransaction.category.toString() || 
-         validatedData.amount !== existingTransaction.amount)) {
+   const finalType = validatedData.type || oldType;
+const finalCategory = validatedData.category || oldCategory;
+const finalAmount = validatedData.amount || oldAmount;
+
+if (
+  finalType === 'expense' &&
+  (
+    finalCategory !== oldCategory ||
+    finalAmount !== oldAmount
+  )
+) {
       const transactionDate = new Date(validatedData.date || existingTransaction.date);
       const month = transactionDate.getMonth() + 1;
       const year = transactionDate.getFullYear();
@@ -368,7 +387,10 @@ export const deleteTransaction = async (req, res, next) => {
     const userId = req.user.id;
 
     // Find transaction
-    const transaction = await Transaction.findById(id);
+   const transaction = await Transaction.findOne({
+  _id: id,
+  userId
+});
     if (!transaction) {
       return res.status(404).json({
         success: false,
@@ -512,7 +534,11 @@ export const exportCSV = async (req, res, next) => {
     if (startDate || endDate) {
       $match.date = {};
       if (startDate) $match.date.$gte = new Date(startDate);
-      if (endDate) $match.date.$lte = new Date(endDate);
+   if (endDate) {
+  const end = new Date(endDate);
+  end.setHours(23, 59, 59, 999);
+  $match.date.$lte = end;
+}
     }
 
     if (search) {
@@ -633,7 +659,7 @@ export const importCSV = async (req, res, next) => {
       
       try {
         const amount = parseFloat(values[amountIndex]);
-        const type = values[typeIndex].toLowerCase();
+        const type = values[typeIndex]?.toLowerCase();
         const categoryName = values[categoryIndex].toLowerCase();
         const date = values[dateIndex];
 

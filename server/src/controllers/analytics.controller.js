@@ -1,44 +1,65 @@
 import Transaction from '../models/Transaction.model.js'
 import Wallet from '../models/Wallet.model.js'
-import Budget from '../models/Budget.model.js'
-import Category from '../models/Category.model.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
-import { AppError } from '../middleware/error.middleware.js'
 import mongoose from 'mongoose'
 
+function parseRange(range = '30d') {
+  const now = new Date()
+  let startDate
+
+  switch (range) {
+    case '7d':
+      startDate = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000))
+      break
+    case '90d':
+      startDate = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000))
+      break
+    case '1y':
+      startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+      break
+    case '30d':
+    default:
+      startDate = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000))
+  }
+
+  return { startDate, endDate: now }
+}
+
+function getMonthsFromRange(range = '30d') {
+  switch (range) {
+    case '7d':
+      return 1
+    case '90d':
+      return 3
+    case '1y':
+      return 12
+    case '30d':
+    default:
+      return 6
+  }
+}
+
+function getUserObjectId(req) {
+  return new mongoose.Types.ObjectId(req.user.id)
+}
+
+function getRangeParam(req) {
+  return req.query.range || req.query.period || '30d'
+}
+
 export const getMonthlyTrend = asyncHandler(async (req, res) => {
-  const { months = 6 } = req.query
+  const range = getRangeParam(req)
+  const months = Number(req.query.months) || getMonthsFromRange(range)
   const now = new Date()
   const startDate = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1)
+  const userId = getUserObjectId(req)
 
-  console.log('=== MONTHLY TREND DEBUG ===');
-  console.log('REQ USER ID:', req.user.id);
-  console.log('OBJECT ID:', new mongoose.Types.ObjectId(req.user.id));
-  console.log('START DATE:', startDate);
-
-  // Check transaction types in database
-  const types = await Transaction.distinct('type');
-  console.log('TRANSACTION TYPES IN DB:', types);
-
-  // Get all transactions first to debug
-  const allTransactions = await Transaction.find({ userId: req.user.id, date: { $gte: startDate } });
-  console.log('ALL TRANSACTIONS COUNT (STRING ID):', allTransactions.length);
-  console.log('TRANSACTIONS SAMPLE:', allTransactions.slice(0, 3).map(t => ({ id: t._id, type: t.type, amount: t.amount, date: t.date })));
-  
-  // Test with ObjectId
-  const allTransactionsObjectId = await Transaction.find({ userId: new mongoose.Types.ObjectId(req.user.id), date: { $gte: startDate } });
-  console.log('ALL TRANSACTIONS COUNT (OBJECT ID):', allTransactionsObjectId.length);
-  console.log('INCOME TRANSACTIONS:', allTransactionsObjectId.filter(t => t.type === 'income').length);
-  console.log('EXPENSE TRANSACTIONS:', allTransactionsObjectId.filter(t => t.type === 'expense').length);
-
-  // Test without date filter
-  const allTransactionsNoDate = await Transaction.find({ userId: new mongoose.Types.ObjectId(req.user.id) });
-  console.log('ALL TRANSACTIONS (NO DATE FILTER):', allTransactionsNoDate.length);
+  console.log(`[analytics] monthly-trend user=${req.user.id} months=${months}`)
 
   const trend = await Transaction.aggregate([
     {
       $match: {
-        userId: new mongoose.Types.ObjectId(req.user.id),
+        userId,
         date: { $gte: startDate }
       }
     },
@@ -83,68 +104,25 @@ export const getMonthlyTrend = asyncHandler(async (req, res) => {
     }
   ])
 
-  console.log('MONTHLY TREND RESULT:', trend);
-
-  console.log('MONTHLY TREND API RESPONSE:', { success: true, data: { trend } });
-
   res.json({
     success: true,
     data: { trend }
   })
 })
 
-export const getTopCategories = asyncHandler(async (req, res) => {
-  const { period = '30d' } = req.query
-  const now = new Date()
-  
-  console.log('=== CATEGORY BREAKDOWN DEBUG ===');
-  console.log('REQ USER ID:', req.user.id);
-  console.log('OBJECT ID:', new mongoose.Types.ObjectId(req.user.id));
-  
-  let startDate, endDate
-  if (month && year) {
-    startDate = new Date(year, month - 1, 1)
-    endDate = new Date(year, month, 0)
-  } else {
-    startDate = new Date(now.getFullYear(), now.getMonth(), 1)
-    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-  }
+export const getCategoryBreakdown = asyncHandler(async (req, res) => {
+  const range = getRangeParam(req)
+  const { startDate, endDate } = parseRange(range)
+  const userId = getUserObjectId(req)
 
-  console.log('DATE RANGE:', { startDate, endDate });
-
-  // Get all expense transactions first to debug
-  const allExpenseTransactions = await Transaction.find({ 
-    userId: req.user.id, 
-    type: 'expense',
-    date: { $gte: startDate, $lt: endDate }
-  });
-  
-  console.log('EXPENSE TRANSACTIONS FOUND (STRING ID):', allExpenseTransactions.length);
-  console.log('EXPENSE TRANSACTIONS SAMPLE:', allExpenseTransactions.slice(0, 3).map(t => ({ category: t.category, amount: t.amount, type: t.type })));
-  
-  // Test with ObjectId
-  const allExpenseTransactionsObjectId = await Transaction.find({ 
-    userId: new mongoose.Types.ObjectId(req.user.id), 
-    type: 'expense',
-    date: { $gte: startDate, $lt: endDate }
-  });
-  
-  console.log('EXPENSE TRANSACTIONS FOUND (OBJECT ID):', allExpenseTransactionsObjectId.length);
-  console.log('EXPENSE TRANSACTIONS SAMPLE:', allExpenseTransactionsObjectId.slice(0, 3).map(t => ({ category: t.category, amount: t.amount, type: t.type })));
-
-  // Test without date filter
-  const allExpenseNoDate = await Transaction.find({ 
-    userId: new mongoose.Types.ObjectId(req.user.id), 
-    type: 'expense'
-  });
-  console.log('EXPENSE TRANSACTIONS (NO DATE FILTER):', allExpenseNoDate.length);
+  console.log(`[analytics] category-breakdown user=${req.user.id} range=${range}`)
 
   const categories = await Transaction.aggregate([
     {
       $match: {
-        userId: new mongoose.Types.ObjectId(req.user.id),
+        userId,
         type: 'expense',
-        date: { $gte: startDate, $lt: endDate }
+        date: { $gte: startDate, $lte: endDate }
       }
     },
     {
@@ -173,7 +151,55 @@ export const getTopCategories = asyncHandler(async (req, res) => {
     }
   ])
 
-  console.log('CATEGORY BREAKDOWN RESULT:', categories);
+  res.json({
+    success: true,
+    data: { categories }
+  })
+})
+
+export const getTopCategories = asyncHandler(async (req, res) => {
+  const range = getRangeParam(req)
+  const { startDate, endDate } = parseRange(range)
+  const userId = getUserObjectId(req)
+
+  console.log(`[analytics] top-categories user=${req.user.id} range=${range}`)
+
+  const categories = await Transaction.aggregate([
+    {
+      $match: {
+        userId,
+        type: 'expense',
+        date: { $gte: startDate, $lte: endDate }
+      }
+    },
+    {
+      $lookup: {
+        from: 'categories',
+        localField: 'category',
+        foreignField: '_id',
+        as: 'categoryInfo'
+      }
+    },
+    {
+      $unwind: '$categoryInfo'
+    },
+    {
+      $group: {
+        _id: '$category',
+        amount: { $sum: '$amount' },
+        count: { $sum: 1 },
+        name: { $first: '$categoryInfo.name' },
+        color: { $first: '$categoryInfo.color' },
+        icon: { $first: '$categoryInfo.icon' }
+      }
+    },
+    {
+      $sort: { amount: -1 }
+    },
+    {
+      $limit: 6
+    }
+  ])
 
   res.json({
     success: true,
@@ -182,16 +208,16 @@ export const getTopCategories = asyncHandler(async (req, res) => {
 })
 
 export const getSpendingHeatmap = asyncHandler(async (req, res) => {
-  const { days = 90 } = req.query
-  const now = new Date()
-  const startDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000))
+  const range = getRangeParam(req)
+  const { startDate, endDate } = parseRange(range === '1y' ? '90d' : range)
+  const userId = getUserObjectId(req)
 
   const heatmap = await Transaction.aggregate([
     {
       $match: {
-        userId: req.user.id,
+        userId,
         type: 'expense',
-        date: { $gte: startDate }
+        date: { $gte: startDate, $lte: endDate }
       }
     },
     {
@@ -211,10 +237,6 @@ export const getSpendingHeatmap = asyncHandler(async (req, res) => {
     }
   ])
 
-  console.log('SPENDING HEATMAP RESULT:', heatmap);
-
-  console.log('SPENDING HEATMAP API RESPONSE:', { success: true, data: { heatmap } });
-
   res.json({
     success: true,
     data: { heatmap }
@@ -222,40 +244,16 @@ export const getSpendingHeatmap = asyncHandler(async (req, res) => {
 })
 
 export const getSavingsGrowth = asyncHandler(async (req, res) => {
-  const { months = 12 } = req.query
+  const range = getRangeParam(req)
+  const months = Number(req.query.months) || getMonthsFromRange(range === '7d' ? '30d' : range)
   const now = new Date()
   const startDate = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1)
-
-  console.log('=== SAVINGS GROWTH DEBUG ===');
-  console.log('REQ USER ID:', req.user.id);
-  console.log('OBJECT ID:', new mongoose.Types.ObjectId(req.user.id));
-  console.log('START DATE:', startDate);
-
-  // Get all savings transactions first to debug
-  const allSavingsTransactions = await Transaction.find({ 
-    userId: req.user.id, 
-    date: { $gte: startDate }
-  });
-  console.log('SAVINGS TRANSACTIONS COUNT (STRING ID):', allSavingsTransactions.length);
-  console.log('SAVINGS TRANSACTIONS SAMPLE:', allSavingsTransactions.slice(0, 3).map(t => ({ type: t.type, amount: t.amount, date: t.date })));
-
-  // Test with ObjectId
-  const allSavingsTransactionsObjectId = await Transaction.find({ 
-    userId: new mongoose.Types.ObjectId(req.user.id), 
-    date: { $gte: startDate }
-  });
-  console.log('SAVINGS TRANSACTIONS COUNT (OBJECT ID):', allSavingsTransactionsObjectId.length);
-
-  // Test without date filter
-  const allSavingsNoDate = await Transaction.find({ 
-    userId: new mongoose.Types.ObjectId(req.user.id)
-  });
-  console.log('SAVINGS TRANSACTIONS (NO DATE FILTER):', allSavingsNoDate.length);
+  const userId = getUserObjectId(req)
 
   const savings = await Transaction.aggregate([
     {
       $match: {
-        userId: new mongoose.Types.ObjectId(req.user.id),
+        userId,
         date: { $gte: startDate }
       }
     },
@@ -301,21 +299,14 @@ export const getSavingsGrowth = asyncHandler(async (req, res) => {
     }
   ])
 
-  console.log('SAVINGS AGGREGATION RESULT:', savings);
-
-  // Calculate cumulative savings
   let cumulativeSavings = 0
-  const growth = savings.map(item => {
+  const growth = savings.map((item) => {
     cumulativeSavings += item.savings
     return {
       ...item,
       cumulativeSavings
     }
   })
-
-  console.log('SAVINGS GROWTH RESULT:', growth);
-
-  console.log('SAVINGS GROWTH API RESPONSE:', { success: true, data: { growth } });
 
   res.json({
     success: true,
@@ -324,41 +315,15 @@ export const getSavingsGrowth = asyncHandler(async (req, res) => {
 })
 
 export const getWalletUsage = asyncHandler(async (req, res) => {
-  const { days = 30 } = req.query
-  const now = new Date()
-  const startDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000))
-
-  console.log('=== WALLET USAGE DEBUG ===');
-  console.log('REQ USER ID:', req.user.id);
-  console.log('OBJECT ID:', new mongoose.Types.ObjectId(req.user.id));
-  console.log('START DATE:', startDate);
-
-  // Get all wallet transactions first to debug
-  const allWalletTransactions = await Transaction.find({ 
-    userId: req.user.id, 
-    date: { $gte: startDate }
-  });
-  console.log('WALLET TRANSACTIONS COUNT (STRING ID):', allWalletTransactions.length);
-  console.log('WALLET TRANSACTIONS SAMPLE:', allWalletTransactions.slice(0, 3).map(t => ({ wallet: t.wallet, amount: t.amount, type: t.type })));
-
-  // Test with ObjectId
-  const allWalletTransactionsObjectId = await Transaction.find({ 
-    userId: new mongoose.Types.ObjectId(req.user.id), 
-    date: { $gte: startDate }
-  });
-  console.log('WALLET TRANSACTIONS COUNT (OBJECT ID):', allWalletTransactionsObjectId.length);
-
-  // Test without date filter
-  const allWalletNoDate = await Transaction.find({ 
-    userId: new mongoose.Types.ObjectId(req.user.id)
-  });
-  console.log('WALLET TRANSACTIONS (NO DATE FILTER):', allWalletNoDate.length);
+  const range = getRangeParam(req)
+  const { startDate, endDate } = parseRange(range)
+  const userId = getUserObjectId(req)
 
   const walletStats = await Transaction.aggregate([
     {
       $match: {
-        userId: new mongoose.Types.ObjectId(req.user.id),
-        date: { $gte: startDate }
+        userId,
+        date: { $gte: startDate, $lte: endDate }
       }
     },
     {
@@ -396,95 +361,26 @@ export const getWalletUsage = asyncHandler(async (req, res) => {
     }
   ])
 
-  console.log('WALLET USAGE RESULT:', walletStats);
-
-  console.log('WALLET USAGE API RESPONSE:', { success: true, data: { walletStats } });
-
   res.json({
     success: true,
     data: { walletStats }
   })
-
-  console.log('CATEGORY BREAKDOWN API RESPONSE:', { success: true, data: { categories } });
-
-  res.json({
-    success: true,
-    data: { categories }
-  })
 })
 
 export const getDashboardStats = asyncHandler(async (req, res) => {
-  const { period = '30d' } = req.query
-  
-  let startDate
+  const range = getRangeParam(req)
+  const { startDate } = parseRange(range)
   const now = new Date()
-  let previousStartDate
-  
-  switch (period) {
-    case '7d':
-      startDate = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000))
-      previousStartDate = new Date(now.getTime() - (14 * 24 * 60 * 60 * 1000))
-      break
-    case '90d':
-      startDate = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000))
-      previousStartDate = new Date(now.getTime() - (180 * 24 * 60 * 60 * 1000))
-      break
-    case '1y':
-      startDate = new Date(now.getFullYear(), now.getMonth() - 12, 1)
-      previousStartDate = new Date(now.getFullYear() - 1, now.getMonth() - 12, 1)
-      break
-    default:
-      startDate = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000))
-      previousStartDate = new Date(now.getTime() - (60 * 24 * 60 * 60 * 1000))
-  }
+  const userId = getUserObjectId(req)
+  const durationMs = now.getTime() - startDate.getTime()
+  const previousStartDate = new Date(startDate.getTime() - durationMs)
 
-  // Current period stats
-  console.log('=== DASHBOARD DEBUG START ===');
-  console.log('Dashboard aggregation - User ID:', req.user.id);
-  console.log('Dashboard aggregation - Date range:', startDate);
-  
-  // Debug: Check transaction types before aggregation
-  const sampleTransactions = await Transaction.find({ userId: req.user.id }).limit(10);
-  console.log('SAMPLE TRANSACTIONS:', sampleTransactions.map(t => ({ 
-    id: t._id, 
-    type: t.type, 
-    amount: t.amount,
-    date: t.date 
-  })));
-  
-  // Debug: Count transactions by type
-  const incomeTransactions = await Transaction.find({ userId: req.user.id, type: 'income' });
-  const expenseTransactions = await Transaction.find({ userId: req.user.id, type: 'expense' });
-  console.log('INCOME TRANSACTIONS COUNT:', incomeTransactions.length);
-  console.log('EXPENSE TRANSACTIONS COUNT:', expenseTransactions.length);
-  console.log('INCOME TOTAL:', incomeTransactions.reduce((sum, t) => sum + t.amount, 0));
-  console.log('EXPENSE TOTAL:', expenseTransactions.reduce((sum, t) => sum + t.amount, 0));
-  
-  // Debug: Log actual transaction types and values
-  console.log('INCOME TRANSACTIONS DETAILS:', incomeTransactions.map(t => ({ id: t._id, type: t.type, amount: t.amount })));
-  console.log('EXPENSE TRANSACTIONS DETAILS:', expenseTransactions.map(t => ({ id: t._id, type: t.type, amount: t.amount })));
-  
-  // Debug: Check if aggregation works with hardcoded types
-  const testAggregation = await Transaction.aggregate([
-    {
-      $match: {
-        userId: req.user.id,
-        type: { $in: ['income', 'expense'] }
-      }
-    },
-    {
-      $group: {
-        _id: '$type',
-        total: { $sum: '$amount' }
-      }
-    }
-  ]);
-  console.log('TEST AGGREGATION BY TYPE:', testAggregation);
-  
+  console.log(`[analytics] dashboard-stats user=${req.user.id} range=${range}`)
+
   const currentStats = await Transaction.aggregate([
     {
       $match: {
-        userId: req.user.id,
+        userId,
         date: { $gte: startDate }
       }
     },
@@ -504,19 +400,11 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
       }
     }
   ])
-  
-  console.log('AGGREGATION RESULT:', currentStats);
-  console.log('AGGREGATION INCOME:', currentStats[0]?.totalIncome);
-  console.log('AGGREGATION EXPENSES:', currentStats[0]?.totalExpenses);
-  
-  // Final response logging
- 
 
-  // Previous period stats for comparison
   const previousStats = await Transaction.aggregate([
     {
       $match: {
-        userId: req.user.id,
+        userId,
         date: { $gte: previousStartDate, $lt: startDate }
       }
     },
@@ -537,24 +425,20 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
     }
   ])
 
-  // Total balance from wallets
-  const wallets = await Wallet.find({ 
-    userId: req.user.id, 
-    isArchived: false 
+  const wallets = await Wallet.find({
+    userId,
+    isArchived: false
   }).select('balance')
 
   const totalBalance = wallets.reduce((sum, wallet) => sum + wallet.balance, 0)
-
   const current = currentStats[0] || { totalIncome: 0, totalExpenses: 0 }
   const previous = previousStats[0] || { totalIncome: 0, totalExpenses: 0 }
-
   const currentSavings = current.totalIncome - current.totalExpenses
   const previousSavings = previous.totalIncome - previous.totalExpenses
 
-  // Calculate percentage changes
-  const calculateChange = (current, previous) => {
-    if (previous === 0) return current > 0 ? 100 : 0
-    return ((current - previous) / previous) * 100
+  const calculateChange = (currentValue, previousValue) => {
+    if (previousValue === 0) return currentValue > 0 ? 100 : 0
+    return ((currentValue - previousValue) / previousValue) * 100
   }
 
   const stats = {
@@ -562,7 +446,7 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
     totalIncome: current.totalIncome,
     totalExpenses: current.totalExpenses,
     totalSavings: currentSavings,
-    balanceChange: calculateChange(totalBalance, totalBalance), // No change for balance
+    balanceChange: 0,
     incomeChange: calculateChange(current.totalIncome, previous.totalIncome),
     expenseChange: calculateChange(current.totalExpenses, previous.totalExpenses),
     savingsChange: calculateChange(currentSavings, previousSavings)
@@ -570,6 +454,170 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    data: {stats}
+    data: { stats }
   })
+})
+
+export const exportAnalytics = asyncHandler(async (req, res) => {
+  const range = getRangeParam(req)
+  const { startDate, endDate } = parseRange(range)
+  const userId = getUserObjectId(req)
+  console.log(`[analytics] export user=${req.user.id} range=${range} start=${startDate.toISOString()} end=${endDate.toISOString()}`)
+
+  const [summaryAgg, categoryAgg, topAgg, transactions] = await Promise.all([
+    Transaction.aggregate([
+      {
+        $match: {
+          userId,
+          date: { $gte: startDate, $lte: endDate }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalIncome: {
+            $sum: { $cond: [{ $eq: ['$type', 'income'] }, '$amount', 0] }
+          },
+          totalExpenses: {
+            $sum: { $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0] }
+          },
+          transactionCount: { $sum: 1 }
+        }
+      }
+    ]),
+    Transaction.aggregate([
+      {
+        $match: {
+          userId,
+          type: 'expense',
+          date: { $gte: startDate, $lte: endDate }
+        }
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      { $unwind: '$categoryInfo' },
+      {
+        $group: {
+          _id: '$category',
+          category: { $first: '$categoryInfo.name' },
+          amount: { $sum: '$amount' }
+        }
+      },
+      { $sort: { amount: -1 } }
+    ]),
+    Transaction.aggregate([
+      {
+        $match: {
+          userId,
+          type: 'expense',
+          date: { $gte: startDate, $lte: endDate }
+        }
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      { $unwind: '$categoryInfo' },
+      {
+        $group: {
+          _id: '$category',
+          category: { $first: '$categoryInfo.name' },
+          total: { $sum: '$amount' }
+        }
+      },
+      { $sort: { total: -1 } },
+      { $limit: 6 }
+    ]),
+    Transaction.aggregate([
+      {
+        $match: {
+          userId,
+          date: { $gte: startDate, $lte: endDate }
+        }
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      {
+        $unwind: {
+          path: '$categoryInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      { $sort: { date: -1 } },
+      {
+        $project: {
+          _id: 0,
+          date: 1,
+          category: '$categoryInfo.name',
+          type: 1,
+          amount: 1,
+          description: '$notes'
+        }
+      }
+    ])
+  ])
+
+  const summary = summaryAgg[0] || {
+    totalIncome: 0,
+    totalExpenses: 0,
+    transactionCount: 0
+  }
+  const totalSavings = summary.totalIncome - summary.totalExpenses
+
+  const escapeCsv = (value) => {
+    const text = String(value ?? '').replace(/"/g, '""')
+    return `"${text}"`
+  }
+
+  const lines = []
+  lines.push('Section,Metric,Value')
+  lines.push(`Summary,Range,${range}`)
+  lines.push(`Summary,Start Date,${startDate.toISOString()}`)
+  lines.push(`Summary,End Date,${endDate.toISOString()}`)
+  lines.push(`Summary,Total Income,${summary.totalIncome}`)
+  lines.push(`Summary,Total Expenses,${summary.totalExpenses}`)
+  lines.push(`Summary,Savings,${totalSavings}`)
+  lines.push(`Summary,Transactions,${summary.transactionCount}`)
+  lines.push('')
+  lines.push('Category Breakdown,Category,Amount')
+  categoryAgg.forEach((item) => {
+    lines.push(`Category Breakdown,${escapeCsv(item.category)},${item.amount}`)
+  })
+  lines.push('')
+  lines.push('Top Categories,Category,Total')
+  topAgg.forEach((item) => {
+    lines.push(`Top Categories,${escapeCsv(item.category)},${item.total}`)
+  })
+  lines.push('')
+  lines.push('Date,Category,Type,Amount,Description')
+  transactions.forEach((tx) => {
+    lines.push([
+      tx.date ? new Date(tx.date).toISOString() : '',
+      escapeCsv(tx.category || 'Unknown'),
+      tx.type || '',
+      tx.amount ?? 0,
+      escapeCsv(tx.description || '')
+    ].join(','))
+  })
+
+  const csv = lines.join('\n')
+  res.setHeader('Content-Type', 'text/csv')
+  res.setHeader('Content-Disposition', `attachment; filename="analytics-${range}.csv"`)
+  res.status(200).send(csv)
 })

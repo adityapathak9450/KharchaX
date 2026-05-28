@@ -137,9 +137,9 @@ export function CreateBudgetModal({ categories, onClose, onSuccess }) {
                 {...register('category')}
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500/50"
               >
-                <option value="">Select category</option>
+                <option className="bg-gray-900 text-white" value="">Select category</option>
                 {categories.map((category) => (
-                  <option key={category._id} value={category._id}>
+                  <option className="bg-gray-900 text-white" key={category._id} value={category._id}>
                     {category.name}
                   </option>
                 ))}
@@ -179,7 +179,7 @@ export function CreateBudgetModal({ categories, onClose, onSuccess }) {
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500/50"
                 >
                   {months.map((month) => (
-                    <option key={month.value} value={month.value}>
+                    <option className="bg-gray-900 text-white" key={month.value} value={month.value}>
                       {month.label}
                     </option>
                   ))}
@@ -196,7 +196,7 @@ export function CreateBudgetModal({ categories, onClose, onSuccess }) {
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500/50"
                 >
                   {years.map((year) => (
-                    <option key={year} value={year}>
+                    <option className="bg-gray-900 text-white" key={year} value={year}>
                       {year}
                     </option>
                   ))}

@@ -9,7 +9,9 @@ import { formatCurrency } from '../../utils/format'
 import { InviteMemberModal } from '../../components/shared/InviteMemberModal'
 import { SharedExpenseForm } from '../../components/shared/SharedExpenseForm'
 import { SettlementCard } from '../../components/shared/SettlementCard'
+import { SettlementModal } from '../../components/shared/SettlementModal'
 import { MemberList } from '../../components/shared/MemberList'
+import { useAuthStore } from '../../store/authStore'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 
@@ -20,12 +22,13 @@ export default function SharedWalletDetailPage() {
   const [activeTab, setActiveTab] = useState('overview')
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [showExpenseForm, setShowExpenseForm] = useState(false)
+  const [showSettlementModal, setShowSettlementModal] = useState(false)
+  const [activeSettlement, setActiveSettlement] = useState(null)
   const [copiedCode, setCopiedCode] = useState(null)
 
   const queryClient = useQueryClient()
-
-  // 1. Safe parsing of local storage at the top level
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+  const { user } = useAuthStore()
+  const currentUserId = user?._id || user?.id
 
   const { data: sharedWalletData, isLoading, refetch } = useQuery({
     queryKey: ['shared-wallet', id],
@@ -39,11 +42,14 @@ export default function SharedWalletDetailPage() {
     queryFn: () => apiClient.get(`/shared-wallets/${id}/settlements`).then(res => res.data.data),
     enabled: !!id
   })
-  const { data: walletsData } = useQuery({
-  queryKey: ['wallets'],
-  queryFn: () =>
-    apiClient.get('/wallets').then((res) => res.data.data)
-})
+  const { data: wallets = [] } = useQuery({
+    queryKey: ['wallets'],
+    queryFn: async () => {
+      const res = await apiClient.get('/wallets')
+      return res.data.data?.wallets || []
+    },
+    enabled: showExpenseForm || showSettlementModal,
+  })
 
   const removeMemberMutation = useMutation({
     mutationFn: (memberId) => apiClient.delete(`/shared-wallets/${id}/members/${memberId}`),
@@ -56,35 +62,44 @@ export default function SharedWalletDetailPage() {
     }
   })
   const addExpenseMutation = useMutation({
-  mutationFn: (data) =>
-    apiClient.post(`/shared-wallets/${id}/expenses`, data),
+    mutationFn: (data) => apiClient.post(`/shared-wallets/${id}/expenses`, data),
+    onSuccess: () => {
+      toast.success('Expense added successfully')
+      queryClient.invalidateQueries({ queryKey: ['shared-wallet', id] })
+      queryClient.invalidateQueries({ queryKey: ['shared-wallet-settlements', id] })
+      queryClient.invalidateQueries({ queryKey: ['wallets'] })
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+      setShowExpenseForm(false)
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to add expense')
+    },
+  })
 
-  onSuccess: () => {
-    toast.success('Expense added successfully')
-
-    queryClient.invalidateQueries({
-      queryKey: ['shared-wallet', id]
-    })
-
-    queryClient.invalidateQueries({
-      queryKey: ['shared-wallet-settlements', id]
-    })
-
-    setShowExpenseForm(false)
-  },
-
-  onError: (error) => {
-    toast.error(
-      error.response?.data?.message || 'Failed to add expense'
-    )
-  }
-})
+  const settleMutation = useMutation({
+    mutationFn: (data) => apiClient.post(`/shared-wallets/${id}/settle`, data),
+    onSuccess: () => {
+      toast.success('Settlement recorded successfully')
+      queryClient.invalidateQueries({ queryKey: ['shared-wallet', id] })
+      queryClient.invalidateQueries({ queryKey: ['shared-wallet-settlements', id] })
+      queryClient.invalidateQueries({ queryKey: ['wallets'] })
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+      setShowSettlementModal(false)
+      setActiveSettlement(null)
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to record settlement')
+    },
+  })
 
   const sharedWallet = sharedWalletData?.sharedWallet
  
-  const settlements = settlementsData?.settlements ?? {}
+  const settlements = settlementsData?.settlements ?? []
+  const memberBalances = settlementsData?.memberBalances ?? []
+  const settlementSummary = settlementsData?.summary
   const expenses = sharedWallet?.expenses || []
-  const wallets = walletsData?.wallets || []
 
   const copyInviteCode = () => {
     if (sharedWallet?.inviteCode) {
@@ -305,12 +320,21 @@ export default function SharedWalletDetailPage() {
         <MemberList
           members={sharedWallet.members || []}
           onRemoveMember={handleRemoveMember}
-          isOwner={sharedWallet.createdBy?._id === currentUser?._id}
+          isOwner={toIdString(sharedWallet.createdBy) === currentUserId}
         />
       )}
 
       {activeTab === 'settlements' && (
-        <SettlementCard settlements={settlements} />
+        <SettlementCard
+          settlements={settlements}
+          memberBalances={memberBalances}
+          summary={settlementSummary}
+          currentUserId={currentUserId}
+          onSettle={(suggestion) => {
+            setActiveSettlement(suggestion)
+            setShowSettlementModal(true)
+          }}
+        />
       )}
 
       {/* Modals */}
@@ -326,16 +350,33 @@ export default function SharedWalletDetailPage() {
         />
       )}
 
-     {showExpenseForm && (
-  <SharedExpenseForm
-    onClose={() => setShowExpenseForm(false)}
-    onSubmit={(data) => {
-      addExpenseMutation.mutate(data)
-    }}
-    members={sharedWallet.members || []}
-    wallets={wallets}
-  />
-)}
+      {showExpenseForm && (
+        <SharedExpenseForm
+          onClose={() => setShowExpenseForm(false)}
+          onSubmit={(data) => addExpenseMutation.mutate(data)}
+          members={sharedWallet.members || []}
+          wallets={wallets}
+          isLoading={addExpenseMutation.isPending}
+        />
+      )}
+
+      {showSettlementModal && activeSettlement && (
+        <SettlementModal
+          onClose={() => {
+            setShowSettlementModal(false)
+            setActiveSettlement(null)
+          }}
+          onSubmit={(data) => settleMutation.mutate(data)}
+          isLoading={settleMutation.isPending}
+          suggestion={activeSettlement}
+          wallets={wallets}
+        />
+      )}
     </div>
   )
+}
+
+function toIdString(id) {
+  if (!id) return ''
+  return id._id ? id._id.toString() : id.toString()
 }

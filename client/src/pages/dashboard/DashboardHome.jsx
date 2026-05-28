@@ -46,6 +46,28 @@ import { CreateWalletModal } from '../../components/wallets/CreateWalletModal'
 
 export default function DashboardHome() {
   const [timeRange, setTimeRange] = useState('30d')
+  const getMonthsFromRange = (range) => {
+    if (range === '7d') return 1
+    if (range === '90d') return 3
+    if (range === '1y') return 12
+    return 6
+  }
+
+  const getDateRangeParams = (range) => {
+    const endDate = new Date()
+    const startDate = new Date()
+
+    if (range === '7d') startDate.setDate(endDate.getDate() - 7)
+    else if (range === '90d') startDate.setDate(endDate.getDate() - 90)
+    else if (range === '1y') startDate.setFullYear(endDate.getFullYear() - 1)
+    else startDate.setDate(endDate.getDate() - 30)
+
+    return {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString()
+    }
+  }
+
   const [showTransactionForm, setShowTransactionForm] = useState(false)
   const [showWalletModal, setShowWalletModal] = useState(false)
 
@@ -77,9 +99,11 @@ export default function DashboardHome() {
   */
 
   const { data: allTransactions = [] } = useQuery({
-    queryKey: ['all-transactions'],
+    queryKey: ['all-transactions', timeRange],
     queryFn: async () => {
-      const res = await apiClient.get('/transactions?limit=1000')
+      const res = await apiClient.get('/transactions', {
+        params: { limit: 1000, ...getDateRangeParams(timeRange) }
+      })
 
       console.log('=== TRANSACTIONS API ===')
       console.log(res.data)
@@ -96,9 +120,11 @@ export default function DashboardHome() {
   */
 
   const { data: recentTransactions = [] } = useQuery({
-    queryKey: ['recent-transactions'],
+    queryKey: ['recent-transactions', timeRange],
     queryFn: async () => {
-      const res = await apiClient.get('/transactions?limit=5')
+      const res = await apiClient.get('/transactions', {
+        params: { limit: 5, ...getDateRangeParams(timeRange) }
+      })
 
       console.log('=== RECENT TRANSACTIONS ===')
       console.log(res.data)
@@ -134,9 +160,11 @@ export default function DashboardHome() {
   */
 
   const { data: monthlyTrend } = useQuery({
-    queryKey: ['monthly-trend'],
+    queryKey: ['monthly-trend', timeRange],
     queryFn: async () => {
-      const res = await apiClient.get('/analytics/monthly-trend?months=6')
+      const res = await apiClient.get('/analytics/monthly-trend', {
+        params: { range: timeRange, months: getMonthsFromRange(timeRange) }
+      })
 
       console.log('=== MONTHLY TREND ===')
       console.log(res.data)
@@ -152,14 +180,26 @@ export default function DashboardHome() {
   */
 
   const { data: categoryBreakdown } = useQuery({
-    queryKey: ['category-breakdown'],
+    queryKey: ['category-breakdown', timeRange],
     queryFn: async () => {
-      const res = await apiClient.get('/analytics/category-breakdown')
+      const res = await apiClient.get('/analytics/category-breakdown', {
+        params: { range: timeRange }
+      })
 
       console.log('=== CATEGORY BREAKDOWN ===')
       console.log(res.data)
 
       return res.data.data
+    }
+  })
+
+  const { data: dashboardStats } = useQuery({
+    queryKey: ['dashboard-stats', timeRange],
+    queryFn: async () => {
+      const res = await apiClient.get('/analytics/dashboard-stats', {
+        params: { range: timeRange }
+      })
+      return res.data.data?.stats
     }
   })
 
@@ -187,34 +227,13 @@ export default function DashboardHome() {
     ========================================================
   */
 
-  const totalBalance = wallets.reduce(
+  const totalBalance = dashboardStats?.totalBalance ?? wallets.reduce(
     (sum, wallet) => sum + (wallet.balance || 0),
     0
   )
-
-  const totalIncome = allTransactions
-    .filter(
-      (transaction) =>
-        transaction.type?.toLowerCase() === 'income'
-    )
-    .reduce(
-      (sum, transaction) =>
-        sum + (transaction.amount || 0),
-      0
-    )
-
-  const totalExpenses = allTransactions
-    .filter(
-      (transaction) =>
-        transaction.type?.toLowerCase() === 'expense'
-    )
-    .reduce(
-      (sum, transaction) =>
-        sum + (transaction.amount || 0),
-      0
-    )
-
-  const totalSavings = totalIncome - totalExpenses
+  const totalIncome = dashboardStats?.totalIncome ?? 0
+  const totalExpenses = dashboardStats?.totalExpenses ?? 0
+  const totalSavings = dashboardStats?.totalSavings ?? (totalIncome - totalExpenses)
 
   /*
     ========================================================
@@ -228,10 +247,10 @@ export default function DashboardHome() {
     totalExpenses,
     totalSavings,
 
-    balanceChange: 0,
-    incomeChange: 0,
-    expenseChange: 0,
-    savingsChange: 0
+    balanceChange: dashboardStats?.balanceChange ?? 0,
+    incomeChange: dashboardStats?.incomeChange ?? 0,
+    expenseChange: dashboardStats?.expenseChange ?? 0,
+    savingsChange: dashboardStats?.savingsChange ?? 0
   }
 
   /*

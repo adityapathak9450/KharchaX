@@ -19,7 +19,7 @@ const createCategorySchema = z.object({
 // GET /api/categories - Get all categories (defaults + user's custom)
 router.get('/', async (req, res, next) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     // Get default categories and user's custom categories
     const [defaultCategories, userCategories] = await Promise.all([
@@ -43,11 +43,11 @@ router.get('/', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
   try {
     const validatedData = createCategorySchema.parse(req.body);
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     // Check if category with same name already exists for this user
     const existingCategory = await Category.findOne({
-      name: validatedData.name,
+      name: validatedData.name.trim(),
       userId
     });
 
@@ -84,11 +84,67 @@ router.post('/', async (req, res, next) => {
   }
 });
 
+// PUT /api/categories/:id - Update custom category
+router.put('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const validatedData = createCategorySchema.parse(req.body);
+
+    const category = await Category.findOne({
+      _id: id,
+      userId,
+      isDefault: false
+    });
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: 'Category not found'
+      });
+    }
+
+    const duplicate = await Category.findOne({
+      _id: { $ne: id },
+      userId,
+      name: validatedData.name
+    });
+
+    if (duplicate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category name already exists'
+      });
+    }
+
+    Object.assign(category, validatedData);
+
+    await category.save();
+
+    res.json({
+      success: true,
+      message: 'Category updated successfully',
+      data: category
+    });
+
+  } catch (error) {
+    if (error.name === 'ZodError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        errors: error.errors
+      });
+    }
+
+    next(error);
+  }
+});
 // DELETE /api/categories/:id - Delete custom category
 router.delete('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     // Find category and ensure it belongs to user and is not default
     const category = await Category.findOne({

@@ -50,7 +50,15 @@ const categorySchema = new mongoose.Schema(
   },
 )
 
-categorySchema.index({ userId: 1, name: 1 }, { unique: true })
+categorySchema.index(
+  { userId: 1, name: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      userId: { $exists: true }
+    }
+  }
+)
 categorySchema.index({ userId: 1, isDefault: 1 })
 
 categorySchema.virtual('isSystem').get(function isSystemGetter() {
