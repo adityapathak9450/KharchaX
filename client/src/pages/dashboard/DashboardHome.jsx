@@ -9,8 +9,17 @@ import {
   Plus
 } from 'lucide-react'
 
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../../components/ui/select";
+
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+
 
 import {
   LineChart,
@@ -237,32 +246,42 @@ export default function DashboardHome() {
   return (
     <div className="space-y-6">
 
-      {/* HEADER */}
+    {/* HEADER */}
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">
-            Dashboard
-          </h1>
+<div className="flex items-center justify-between">
+  <div>
+    <h1 className="text-2xl font-bold text-white">
+      Dashboard
+    </h1>
 
-          <p className="text-gray-400 mt-1">
-            Welcome back! Here's your financial overview.
-          </p>
-        </div>
+    <p className="text-gray-400 mt-1">
+      Welcome back! Here's your financial overview.
+    </p>
+  </div>
 
-        <div className="flex items-center gap-2">
-          <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50"
-          >
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="90d">Last 90 days</option>
-            <option value="1y">Last year</option>
-          </select>
-        </div>
-      </div>
+  <div className="flex items-center gap-4">
+    
+    {/* 🔽 Dropdown */}
+    <div className="w-44">
+      <Select value={timeRange} onValueChange={setTimeRange}>
+        
+        <SelectTrigger>
+          {/* 🔥 THIS is important — show selected label */}
+          <SelectValue />
+        </SelectTrigger>
+
+        <SelectContent>
+          <SelectItem value="7d">Last 7 days</SelectItem>
+          <SelectItem value="30d">Last 30 days</SelectItem>
+          <SelectItem value="90d">Last 90 days</SelectItem>
+          <SelectItem value="1y">Last year</SelectItem>
+        </SelectContent>
+
+      </Select>
+    </div>
+
+  </div>
+</div>
 
       {/* STATS */}
 
