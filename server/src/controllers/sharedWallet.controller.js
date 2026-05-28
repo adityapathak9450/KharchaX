@@ -438,22 +438,37 @@ export const getSharedWalletById = asyncHandler(async (req, res) => {
 export const addSharedExpense = asyncHandler(async (req, res) => {
   const { id } = req.params
 
-  const {
-    amount,
-    description,
-    paidBy,
-    splitBetween
-  } = req.body
+ const {
+  amount,
+  description,
+  paidBy,
+  splitBetween,
+  paidFromWallet
+} = req.body
 
   const sharedWallet = await SharedWallet.findById(id)
 
   if (!sharedWallet) {
     throw new AppError('Shared wallet not found', 404)
   }
+  const wallet = await Wallet.findById(paidFromWallet)
+
+if (!wallet) {
+  throw new AppError('Wallet not found', 404)
+}
+
+if (wallet.balance < amount) {
+  throw new AppError('Insufficient wallet balance', 400)
+}
+
+wallet.balance -= Number(amount)
+
+await wallet.save()
 
   sharedWallet.expenses.push({
     amount,
     description,
+    paidFromWallet,
     paidBy,
     splitBetween,
     date: new Date()

@@ -39,6 +39,11 @@ export default function SharedWalletDetailPage() {
     queryFn: () => apiClient.get(`/shared-wallets/${id}/settlements`).then(res => res.data.data),
     enabled: !!id
   })
+  const { data: walletsData } = useQuery({
+  queryKey: ['wallets'],
+  queryFn: () =>
+    apiClient.get('/wallets').then((res) => res.data.data)
+})
 
   const removeMemberMutation = useMutation({
     mutationFn: (memberId) => apiClient.delete(`/shared-wallets/${id}/members/${memberId}`),
@@ -79,6 +84,7 @@ export default function SharedWalletDetailPage() {
  
   const settlements = settlementsData?.settlements ?? {}
   const expenses = sharedWallet?.expenses || []
+  const wallets = walletsData?.wallets || []
 
   const copyInviteCode = () => {
     if (sharedWallet?.inviteCode) {
@@ -320,15 +326,16 @@ export default function SharedWalletDetailPage() {
         />
       )}
 
-      {showExpenseForm && (
-        <SharedExpenseForm
-  onClose={() => setShowExpenseForm(false)}
-  onSubmit={(data) => {
-    addExpenseMutation.mutate(data)
-  }}
-  members={sharedWallet.members || []}
-/>
-      )}
+     {showExpenseForm && (
+  <SharedExpenseForm
+    onClose={() => setShowExpenseForm(false)}
+    onSubmit={(data) => {
+      addExpenseMutation.mutate(data)
+    }}
+    members={sharedWallet.members || []}
+    wallets={wallets}
+  />
+)}
     </div>
   )
 }
