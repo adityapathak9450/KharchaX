@@ -614,20 +614,58 @@ export const importCSV = async (req, res, next) => {
     }
 
     const userId = req.user.id;
+    const columnMapping = req.body.columnMapping ? JSON.parse(req.body.columnMapping) : null;
     const results = [];
     const failed = [];
 
-    // Parse CSV (assuming csv-parser middleware was used)
-    // For now, implement basic CSV parsing
+    // Parse CSV with improved handling
     const csvData = req.file.buffer.toString('utf-8');
-    const lines = csvData.split('\n');
-    const headers = lines[0].split(',').map(h => h.trim());
+    const lines = csvData.split('\n').filter(line => line.trim());
+    
+    if (lines.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'CSV file is empty'
+      });
+    }
 
-    // Find required column indices
-    const amountIndex = headers.findIndex(h => h.toLowerCase().includes('amount'));
-    const typeIndex = headers.findIndex(h => h.toLowerCase().includes('type'));
-    const categoryIndex = headers.findIndex(h => h.toLowerCase().includes('category'));
-    const dateIndex = headers.findIndex(h => h.toLowerCase().includes('date'));
+    // Parse headers - handle quoted fields
+    const parseCSVRow = (row) => {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < row.length; i++) {
+        const char = row[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    };
+
+    const headers = parseCSVRow(lines[0]).map(h => h.trim().replace(/^"|"$/g, ''));
+
+    // Use column mapping from frontend or auto-detect
+    const getHeaderIndex = (fieldName) => {
+      if (columnMapping && columnMapping[fieldName]) {
+        return headers.findIndex(h => h === columnMapping[fieldName]);
+      }
+      // Auto-detect as fallback
+      return headers.findIndex(h => h.toLowerCase().includes(fieldName.toLowerCase()));
+    };
+
+    const amountIndex = getHeaderIndex('amount');
+    const typeIndex = getHeaderIndex('type');
+    const categoryIndex = getHeaderIndex('category');
+    const dateIndex = getHeaderIndex('date');
+    const notesIndex = getHeaderIndex('notes');
 
     if (amountIndex === -1 || typeIndex === -1 || categoryIndex === -1 || dateIndex === -1) {
       return res.status(400).json({
@@ -650,34 +688,66 @@ export const importCSV = async (req, res, next) => {
       walletMap[wallet.name.toLowerCase()] = wallet._id;
     });
 
+    // Find or create default wallet
+    let defaultWalletId = Object.values(walletMap)[0];
+    if (!defaultWalletId) {
+      // Create a default wallet if none exists
+      const defaultWallet = await Wallet.create({
+        name: 'Default Wallet',
+        type: 'cash',
+        balance: 0,
+        userId,
+        color: '#6366f1',
+        icon: '💳'
+      });
+      defaultWalletId = defaultWallet._id;
+    }
+
     // Process data rows
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
 
-      const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, '')); // Remove quotes
+      const values = parseCSVRow(line).map(v => v.trim().replace(/^"|"$/g, ''));
       
       try {
-        const amount = parseFloat(values[amountIndex]);
-        const type = values[typeIndex]?.toLowerCase();
-        const categoryName = values[categoryIndex].toLowerCase();
-        const date = values[dateIndex];
+        const rawAmount = values[amountIndex];
+        const rawType = values[typeIndex];
+        const rawCategory = values[categoryIndex];
+        const rawDate = values[dateIndex];
+        const rawNotes = notesIndex !== -1 ? values[notesIndex] : '';
 
-        if (isNaN(amount) || !['income', 'expense'].includes(type) || !categoryName || !date) {
-          failed.push({ row: i + 1, error: 'Invalid data format' });
+        // Validate and parse amount
+        const amount = parseFloat(rawAmount.replace(/[^0-9.-]/g, ''));
+        if (isNaN(amount) || amount <= 0) {
+          failed.push({ row: i + 1, error: `Invalid amount: ${rawAmount}` });
+          continue;
+        }
+
+        // Validate type
+        const type = rawType?.toLowerCase().trim();
+        if (!['income', 'expense'].includes(type)) {
+          failed.push({ row: i + 1, error: `Invalid type: ${rawType}` });
+          continue;
+        }
+
+        // Validate and map category
+        const categoryName = rawCategory?.toLowerCase().trim();
+        if (!categoryName) {
+          failed.push({ row: i + 1, error: 'Category is required' });
           continue;
         }
 
         const categoryId = categoryMap[categoryName];
         if (!categoryId) {
-          failed.push({ row: i + 1, error: `Category "${values[categoryIndex]}" not found` });
+          failed.push({ row: i + 1, error: `Category "${rawCategory}" not found` });
           continue;
         }
 
-        // Use first wallet as default
-        const walletId = Object.values(walletMap)[0];
-        if (!walletId) {
-          failed.push({ row: i + 1, error: 'No wallets available' });
+        // Validate date
+        const date = new Date(rawDate);
+        if (isNaN(date.getTime())) {
+          failed.push({ row: i + 1, error: `Invalid date: ${rawDate}` });
           continue;
         }
 
@@ -686,24 +756,24 @@ export const importCSV = async (req, res, next) => {
           amount,
           type,
           category: categoryId,
-          wallet: walletId,
-          date: new Date(date),
-          notes: values[headers.findIndex(h => h.toLowerCase().includes('note'))] || ''
+          wallet: defaultWalletId,
+          date,
+          notes: rawNotes || ''
         });
 
         results.push(transaction);
       } catch (error) {
-        failed.push({ row: i + 1, error: 'Processing error' });
+        failed.push({ row: i + 1, error: 'Processing error: ' + error.message });
       }
     }
 
-    // Bulk insert
+    // Bulk insert with atomic operation
     let created = 0;
     if (results.length > 0) {
       const inserted = await Transaction.insertMany(results);
       created = inserted.length;
 
-      // Update wallet balances
+      // Update wallet balances atomically
       const walletUpdates = {};
       results.forEach(transaction => {
         const walletId = transaction.wallet.toString();
@@ -726,6 +796,38 @@ export const importCSV = async (req, res, next) => {
           )
         )
       );
+
+      // Log activity
+      await activityService.logActivity(userId, 'imported_transactions', 'transaction', null, {
+        count: created
+      });
+
+      // Check budgets for expense transactions
+      const expenseTransactions = results.filter(t => t.type === 'expense');
+      if (expenseTransactions.length > 0) {
+        const { default: budgetService } = await import('../services/budget.service.js');
+        
+        for (const transaction of expenseTransactions) {
+          const month = transaction.date.getMonth() + 1;
+          const year = transaction.date.getFullYear();
+          
+          const budgetResult = await budgetService.checkBudgets(
+            userId,
+            transaction.category,
+            month,
+            year
+          );
+          
+          if (budgetResult.alerts && budgetResult.alerts.length > 0) {
+            for (const alert of budgetResult.alerts) {
+              await activityService.logBudgetAlert(userId, alert.budget, alert.type, {
+                transactionAmount: transaction.amount,
+                transactionId: transaction._id
+              });
+            }
+          }
+        }
+      }
     }
 
     res.json({

@@ -236,35 +236,28 @@ const generateCSV = async (reportData, fileName) => {
   });
 };
 
-const generatePDF = async (reportData, fileName, userId) => {
-  const { allTransactions, totals, period, categoryBreakdown } = reportData;
+const generatePDF = async (reportData, fileName) => {
+  const { allTransactions, totals, period } = reportData;
 
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: 'A4' });
+    const doc = new PDFDocument();
     const chunks = [];
 
     doc.on('data', (chunk) => chunks.push(chunk));
+
     doc.on('end', async () => {
       try {
-        const buffer = Buffer.concat(chunks);
-        
-        // Upload to Cloudinary
-        const result = await new Promise((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream(
-            {
-              resource_type: 'raw',
-              folder: 'kharchaX/reports',
-              public_id: `${fileName}-${Date.now()}`,
-              format: 'pdf'
-            },
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }
-          );
+        const pdfBuffer = Buffer.concat(chunks);
 
-          uploadStream.end(buffer);
-        });
+       const base64PDF = pdfBuffer.toString('base64');
+
+const dataURI = `data:application/pdf;base64,${base64PDF}`;
+
+const result = await cloudinary.uploader.upload(dataURI, {
+  resource_type: 'raw',
+  folder: 'kharchaX/reports',
+  public_id: `${fileName}-${Date.now()}`
+});
 
         resolve(result.secure_url);
       } catch (error) {
@@ -272,112 +265,40 @@ const generatePDF = async (reportData, fileName, userId) => {
       }
     });
 
-    // Page 1 — Cover
-    doc.fontSize(28).fillColor('#6366f1').text('KharchaX', 50, 100, { align: 'center' });
-    doc.fontSize(18).fillColor('#ffffff').text('Monthly Financial Report', 50, 140, { align: 'center' });
-    
-    const periodText = period.month 
-      ? new Date(period.year, period.month - 1).toLocaleString('default', { month: 'long', year: 'numeric' })
-      : `${period.year}`;
-    doc.fontSize(14).fillColor('#a1a1aa').text(periodText, 50, 170, { align: 'center' });
-    
-    // Add user info (you might want to fetch user details)
-    doc.fontSize(12).fillColor('#a1a1aa').text(`Generated: ${new Date().toLocaleDateString('en-IN')}`, 50, 200, { align: 'center' });
+    // ===== SIMPLE PDF CONTENT =====
 
-    // Page 2 — Summary
-    doc.addPage();
-    doc.fontSize(20).fillColor('#ffffff').text('Financial Summary', 50, 50);
-    
-    // Summary boxes
-    const boxY = 100;
-    const boxWidth = 150;
-    const boxHeight = 80;
-    const boxSpacing = 20;
-    
-    // Income box
-    doc.rect(50, boxY, boxWidth, boxHeight).fill('#22c55e');
-    doc.fillColor('#ffffff').fontSize(12).text('Total Income', 60, boxY + 20);
-    doc.fontSize(20).text(`₹${totals.income.toLocaleString('en-IN')}`, 60, boxY + 50);
-    
-    // Expense box
-    doc.rect(50 + boxWidth + boxSpacing, boxY, boxWidth, boxHeight).fill('#ef4444');
-    doc.fillColor('#ffffff').fontSize(12).text('Total Expenses', 60 + boxWidth + boxSpacing, boxY + 20);
-    doc.fontSize(20).text(`₹${totals.expense.toLocaleString('en-IN')}`, 60 + boxWidth + boxSpacing, boxY + 50);
-    
-    // Savings box
-    doc.rect(50 + (boxWidth + boxSpacing) * 2, boxY, boxWidth, boxHeight).fill('#6366f1');
-    doc.fillColor('#ffffff').fontSize(12).text('Net Savings', 60 + (boxWidth + boxSpacing) * 2, boxY + 20);
-    doc.fontSize(20).text(`₹${totals.savings.toLocaleString('en-IN')}`, 60 + (boxWidth + boxSpacing) * 2, boxY + 50);
+    doc.fontSize(24).text('KharchaX Financial Report', {
+      align: 'center',
+    });
 
-    // Page 3 — Category Breakdown
-    if (categoryBreakdown && categoryBreakdown.length > 0) {
-      doc.addPage();
-      doc.fontSize(20).fillColor('#ffffff').text('Category Breakdown', 50, 50);
-      
-      let y = 100;
-      doc.fontSize(12).fillColor('#a1a1aa').text('Category', 50, y);
-      doc.text('Amount', 250, y);
-      doc.text('% of Total', 400, y);
-      
-      y += 20;
-      const grandTotal = categoryBreakdown.reduce((sum, cat) => sum + cat.total, 0);
-      
-      categoryBreakdown.forEach((category, index) => {
-        const percentage = grandTotal > 0 ? ((category.total / grandTotal) * 100).toFixed(1) : 0;
-        
-        // Alternating row colors
-        if (index % 2 === 0) {
-          doc.rect(50, y - 5, 450, 20).fill('#1a1a1a');
-        }
-        
-        doc.fillColor('#ffffff').text(category.name, 60, y + 10);
-        doc.text(`₹${category.total.toLocaleString('en-IN')}`, 260, y + 10);
-        doc.text(`${percentage}%`, 410, y + 10);
-        
-        y += 25;
-      });
-    }
+    doc.moveDown();
 
-    // Page 4 — Transactions
-    doc.addPage();
-    doc.fontSize(20).fillColor('#ffffff').text('Transactions', 50, 50);
-    
-    let y = 100;
-    doc.fontSize(12).fillColor('#a1a1aa').text('Date', 50, y);
-    doc.text('Type', 150, y);
-    doc.text('Category', 250, y);
-    doc.text('Amount', 400, y);
-    
-    y += 20;
-    let pageCount = 0;
-    
-    allTransactions.forEach((transaction, index) => {
-      if (index > 0 && index % 30 === 0) {
-        doc.addPage();
-        pageCount++;
-        y = 100;
-        doc.fontSize(20).fillColor('#ffffff').text('Transactions (continued)', 50, 50);
-        doc.fontSize(12).fillColor('#a1a1aa').text('Date', 50, y);
-        doc.text('Type', 150, y);
-        doc.text('Category', 250, y);
-        doc.text('Amount', 400, y);
-        y += 20;
-      }
-      
-      // Alternating row colors
-      if (index % 2 === 0) {
-        doc.rect(50, y - 5, 450, 20).fill('#1a1a1a');
-      }
-      
-      const date = new Date(transaction.date).toLocaleDateString('en-IN');
-      const category = transaction.category?.name || 'Unknown';
-      
-      doc.fillColor('#ffffff').text(date, 60, y + 10);
-      doc.text(transaction.type, 160, y + 10);
-      doc.text(category, 260, y + 10);
-      doc.text(`₹${transaction.amount.toLocaleString('en-IN')}`, 410, y + 10);
-      
-      y += 25;
+    doc.fontSize(16).text(
+      `Period: ${
+        period.month
+          ? `${period.month}/${period.year}`
+          : period.year
+      }`
+    );
+
+    doc.moveDown();
+
+    doc.fontSize(14).text(`Total Income: ₹${totals.income}`);
+    doc.text(`Total Expense: ₹${totals.expense}`);
+    doc.text(`Net Savings: ₹${totals.savings}`);
+
+    doc.moveDown();
+
+    doc.fontSize(18).text('Transactions');
+
+    doc.moveDown();
+
+    allTransactions.slice(0, 20).forEach((tx, index) => {
+      doc.fontSize(12).text(
+        `${index + 1}. ${tx.type.toUpperCase()} | ₹${tx.amount} | ${
+          tx.category?.name || 'Unknown'
+        }`
+      );
     });
 
     doc.end();

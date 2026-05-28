@@ -26,7 +26,13 @@ export const generateReportController = async (req, res, next) => {
     const { type, month, year, format } = req.body;
 
     // Validate input
-    const validTypes = ['monthly', 'yearly', 'wallet', 'category'];
+   const validTypes = [
+  'monthly',
+  'yearly',
+  'wallet',
+  'category',
+  'budget'
+];
     const validFormats = ['pdf', 'csv'];
 
     if (!validTypes.includes(type)) {

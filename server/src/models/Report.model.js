@@ -35,6 +35,12 @@ const reportSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    format: {
+  type: String,
+  enum: ['pdf', 'csv'],
+  required: true,
+  default: 'pdf',
+},
     period: {
       type: periodSchema,
       required: [true, 'Period is required'],
@@ -48,7 +54,7 @@ const reportSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: {
-        values: ['pending', 'ready', 'failed'],
+      values: ['pending', 'generating', 'ready', 'failed'],
         message: '{VALUE} is not a valid status',
       },
       default: 'pending',
@@ -63,6 +69,7 @@ const reportSchema = new mongoose.Schema(
       default: null,
     },
   },
+  
   {
     timestamps: true,
     toJSON: { virtuals: true },

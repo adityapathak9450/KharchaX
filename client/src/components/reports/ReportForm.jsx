@@ -16,7 +16,7 @@ export function ReportForm({ onClose, onSubmit }) {
   })
 
   const mutation = useMutation({
-    mutationFn: (data) => apiClient.post('/reports', data),
+    mutationFn: (data) => apiClient.post('/reports/generate', data),
     onSuccess: (res) => {
       toast.success('Report generation started')
       onSubmit()
