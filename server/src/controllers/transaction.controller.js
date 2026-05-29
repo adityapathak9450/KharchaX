@@ -46,10 +46,10 @@ export const getTransactions = async (req, res, next) => {
       $match.date = {};
       if (startDate) $match.date.$gte = new Date(startDate);
       if (endDate) {
-  const end = new Date(endDate);
-  end.setHours(23, 59, 59, 999);
-  $match.date.$lte = end;
-}
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        $match.date.$lte = end;
+      }
     }
 
     if (search) {
@@ -175,28 +175,9 @@ export const createTransaction = async (req, res, next) => {
       date: new Date(validatedData.date)
     });
 
-    // Update wallet balance
+    // Fetch and authorize wallet
     const wallet = await Wallet.findById(validatedData.wallet);
 
-if (!wallet) {
-  return res.status(404).json({
-    success: false,
-    message: 'Wallet not found'
-  });
-}
-
-const isOwner = wallet.userId.toString() === req.user.id;
-
-const isMember = wallet.members?.some(
-  member => member.userId.toString() === req.user.id
-);
-
-if (!isOwner && !isMember) {
-  return res.status(403).json({
-    success: false,
-    message: 'Access denied'
-  });
-}
     if (!wallet) {
       return res.status(404).json({
         success: false,
@@ -204,6 +185,19 @@ if (!isOwner && !isMember) {
       });
     }
 
+    const isOwner = wallet.userId.toString() === req.user.id;
+    const isMember = wallet.members?.some(
+      member => member.userId.toString() === req.user.id
+    );
+
+    if (!isOwner && !isMember) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
+    }
+
+    // Adjust balance based on transaction type
     if (validatedData.type === 'income') {
       wallet.balance += validatedData.amount;
     } else {
@@ -243,7 +237,7 @@ if (!isOwner && !isMember) {
       );
       
       // Emit budget alerts if needed
-      if (budgetResult.alerts && budgetResult.alerts.length > 0) {
+      if (budgetResult?.alerts && budgetResult.alerts.length > 0) {
         for (const alert of budgetResult.alerts) {
           await activityService.logBudgetAlert(userId, alert.budget, alert.type, {
             transactionAmount: validatedData.amount,
@@ -283,10 +277,7 @@ export const updateTransaction = async (req, res, next) => {
     const validatedData = updateTransactionSchema.parse(req.body);
 
     // Find existing transaction
-   const existingTransaction = await Transaction.findOne({
-  _id: id,
-  userId
-});
+    const existingTransaction = await Transaction.findOne({ _id: id, userId });
     if (!existingTransaction) {
       return res.status(404).json({
         success: false,
@@ -304,59 +295,67 @@ export const updateTransaction = async (req, res, next) => {
     const diff = newEffect - oldEffect;
 
     // Update wallet balance
-   const wallet = await Wallet.findById(existingTransaction.wallet);
+    const wallet = await Wallet.findById(existingTransaction.wallet);
+    if (!wallet) {
+      return res.status(404).json({
+        success: false,
+        message: 'Wallet not found'
+      });
+    }
 
+    const isOwner = wallet.userId.toString() === req.user.id;
+    const isMember = wallet.members?.some(
+      member => member.userId.toString() === req.user.id
+    );
 
-
-const isOwner = wallet.userId.toString() === req.user.id;
-
-const isMember = wallet.members?.some(
-  member => member.userId.toString() === req.user.id
-);
-
-if (!isOwner && !isMember) {
-  return res.status(403).json({
-    success: false,
-    message: 'Access denied'
-  });
-}
+    if (!isOwner && !isMember) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
+    }
 
     wallet.balance += diff;
 
-    // Update transaction
+    // Preserve metadata from existing record for budget comparison
     const oldCategory = existingTransaction.category.toString();
-const oldAmount = existingTransaction.amount;
-const oldType = existingTransaction.type;
+    const oldAmount = existingTransaction.amount;
+    const oldType = existingTransaction.type;
+
+    // Update fields
     Object.assign(existingTransaction, validatedData);
     if (validatedData.date) {
       existingTransaction.date = new Date(validatedData.date);
     }
 
-    // Save both
+    // Save changes
     const [updatedTransaction] = await Promise.all([
       existingTransaction.save(),
       wallet.save()
     ]);
 
-    // Check budgets if expense and category or amount changed
-   const finalType = validatedData.type || oldType;
-const finalCategory = validatedData.category || oldCategory;
-const finalAmount = validatedData.amount || oldAmount;
+    // ── Budget sync after update ─────────────────────────────────────────────
+    const finalType     = updatedTransaction.type;
+    const finalCategory = updatedTransaction.category; 
+    const finalDate     = updatedTransaction.date;
 
-if (
-  finalType === 'expense' &&
-  (
-    finalCategory !== oldCategory ||
-    finalAmount !== oldAmount
-  )
-) {
-      const transactionDate = new Date(validatedData.date || existingTransaction.date);
-      const month = transactionDate.getMonth() + 1;
-      const year = transactionDate.getFullYear();
-      
+    const categoryChanged = validatedData.category && 
+      validatedData.category.toString() !== oldCategory;
+
+    if (finalType === 'expense') {
+      const month = finalDate.getMonth() + 1;
+      const year  = finalDate.getFullYear();
       const { default: budgetService } = await import('../services/budget.service.js');
-      budgetService.checkBudgets(userId, validatedData.category, month, year);
+
+      // Always recalculate the current (final) category budget
+      await budgetService.checkBudgets(userId, finalCategory, month, year);
+
+      // If category changed, also fix the OLD category's budget (it lost an expense)
+      if (categoryChanged) {
+        await budgetService.checkBudgets(userId, oldCategory, month, year);
+      }
     }
+    // ────────────────────────────────────────────────────────────────────────
 
     // Populate response
     const populatedTransaction = await Transaction.findById(updatedTransaction._id)
@@ -387,10 +386,7 @@ export const deleteTransaction = async (req, res, next) => {
     const userId = req.user.id;
 
     // Find transaction
-   const transaction = await Transaction.findOne({
-  _id: id,
-  userId
-});
+    const transaction = await Transaction.findOne({ _id: id, userId });
     if (!transaction) {
       return res.status(404).json({
         success: false,
@@ -401,25 +397,24 @@ export const deleteTransaction = async (req, res, next) => {
     // Update wallet balance (reverse the transaction effect)
     const wallet = await Wallet.findById(transaction.wallet);
 
-if (!wallet) {
-  return res.status(404).json({
-    success: false,
-    message: 'Wallet not found'
-  });
-}
+    if (!wallet) {
+      return res.status(404).json({
+        success: false,
+        message: 'Wallet not found'
+      });
+    }
 
-const isOwner = wallet.userId.toString() === req.user.id;
+    const isOwner = wallet.userId.toString() === req.user.id;
+    const isMember = wallet.members?.some(
+      member => member.userId.toString() === req.user.id
+    );
 
-const isMember = wallet.members?.some(
-  member => member.userId.toString() === req.user.id
-);
-
-if (!isOwner && !isMember) {
-  return res.status(403).json({
-    success: false,
-    message: 'Access denied'
-  });
-}
+    if (!isOwner && !isMember) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
+    }
 
     if (transaction.type === 'income') {
       wallet.balance -= transaction.amount;
@@ -524,7 +519,7 @@ export const exportCSV = async (req, res, next) => {
 
     const userId = req.user.id;
 
-    // Build match object (same as getTransactions but without pagination)
+    // Build match object
     const $match = { userId: new mongoose.Types.ObjectId(userId) };
 
     if (type) $match.type = type;
@@ -534,11 +529,11 @@ export const exportCSV = async (req, res, next) => {
     if (startDate || endDate) {
       $match.date = {};
       if (startDate) $match.date.$gte = new Date(startDate);
-   if (endDate) {
-  const end = new Date(endDate);
-  end.setHours(23, 59, 59, 999);
-  $match.date.$lte = end;
-}
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        $match.date.$lte = end;
+      }
     }
 
     if (search) {
@@ -691,7 +686,6 @@ export const importCSV = async (req, res, next) => {
     // Find or create default wallet
     let defaultWalletId = Object.values(walletMap)[0];
     if (!defaultWalletId) {
-      // Create a default wallet if none exists
       const defaultWallet = await Wallet.create({
         name: 'Default Wallet',
         type: 'cash',
@@ -818,7 +812,7 @@ export const importCSV = async (req, res, next) => {
             year
           );
           
-          if (budgetResult.alerts && budgetResult.alerts.length > 0) {
+          if (budgetResult?.alerts && budgetResult.alerts.length > 0) {
             for (const alert of budgetResult.alerts) {
               await activityService.logBudgetAlert(userId, alert.budget, alert.type, {
                 transactionAmount: transaction.amount,
