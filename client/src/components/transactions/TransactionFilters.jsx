@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Calendar, Wallet, Tag, TrendingUp, TrendingDown } from 'lucide-react'
+import { ChevronDown, Check } from 'lucide-react'
 
 export function TransactionFilters({ filters, categories, wallets, onFilterChange, onClose }) {
   const [localFilters, setLocalFilters] = useState(filters)
+  const [openDropdown, setOpenDropdown] = useState(null)
 
   const handleFilterChange = (key, value) => {
     const newFilters = { ...localFilters, [key]: value }
@@ -112,40 +114,100 @@ export function TransactionFilters({ filters, categories, wallets, onFilterChang
             </div>
           </div>
 
-          {/* Category */}
-          <div>
-            <label className="block text-sm font-medium text-white mb-3">Category</label>
-            <select
-              value={localFilters.category}
-              onChange={(e) => handleFilterChange('category', e.target.value)}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50"
-            >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Category */}
+<div>
+  <label className="block text-sm font-medium text-white mb-3">
+    Category
+  </label>
 
-          {/* Wallet */}
-          <div>
-            <label className="block text-sm font-medium text-white mb-3">Wallet</label>
-            <select
-              value={localFilters.wallet}
-              onChange={(e) => handleFilterChange('wallet', e.target.value)}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50"
-            >
-              <option value="">All Wallets</option>
-              {wallets.map((wallet) => (
-                <option key={wallet._id} value={wallet._id}>
-                  {wallet.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+  <div className="relative">
+    <select
+      value={localFilters.category}
+      onChange={(e) =>
+        handleFilterChange('category', e.target.value)
+      }
+      className="
+        w-full
+        appearance-none
+        px-4 py-3
+        bg-[#0f172a]
+        border border-white/10
+        rounded-xl
+        text-sm text-white
+        focus:outline-none
+        focus:border-indigo-500/50
+        transition-all
+        cursor-pointer
+      "
+    >
+      <option value="" className="bg-[#0f172a] text-white">
+        All Categories
+      </option>
+
+      {categories.map((category) => (
+        <option
+          key={category._id}
+          value={category._id}
+          className="bg-[#0f172a] text-white"
+        >
+          {category.name}
+        </option>
+      ))}
+    </select>
+
+    <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+      ▼
+    </div>
+  </div>
+</div>
+
+{/* Wallet */}
+<div>
+  <label className="block text-sm font-medium text-white mb-3">
+    Wallet
+  </label>
+
+  <div className="relative">
+    <select
+      value={localFilters.wallet}
+      onChange={(e) =>
+        handleFilterChange('wallet', e.target.value)
+      }
+      className="
+        w-full
+        appearance-none
+        px-4 py-3
+        bg-[#0f172a]
+        border border-white/10
+        rounded-xl
+        text-sm text-white
+        focus:outline-none
+        focus:border-indigo-500/50
+        transition-all
+        cursor-pointer
+      "
+    >
+      <option value="" className="bg-[#0f172a] text-white">
+        All Wallets
+      </option>
+
+      {wallets.map((wallet) => (
+        <option
+          key={wallet._id}
+          value={wallet._id}
+          className="bg-[#0f172a] text-white"
+        >
+          {wallet.name}
+        </option>
+      ))}
+    </select>
+
+    <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+      ▼
+    </div>
+  </div>
+</div>
+</div>
 
         {/* Date Range */}
         <div>
