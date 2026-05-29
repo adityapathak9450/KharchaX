@@ -43,7 +43,7 @@ export default function BudgetsPage() {
 
   const { data: categories } = useQuery({
     queryKey: ['categories'],
-    queryFn: () => apiClient.get('/categories').then((res) => res.data.data.categories),
+    queryFn: () => apiClient.get('/categories').then((res) => res.data.data),
   })
 
   const deleteBudgetMutation = useMutation({
@@ -99,7 +99,7 @@ export default function BudgetsPage() {
   const exceededBudgets = budgets?.filter((budget) => budget.isExceeded) || []
   const alertingBudgets =
     budgets?.filter((budget) => budget.shouldAlert && !budget.isExceeded) || []
-
+  console.log(categories)
   return (
     <div className="space-y-6">
       {/* Header */}
