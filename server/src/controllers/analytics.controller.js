@@ -9,34 +9,25 @@ function parseRange(range = '30d') {
 
   switch (range) {
     case '7d':
-      startDate = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000))
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
       break
     case '90d':
-      startDate = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000))
+      startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
       break
     case '1y':
       startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
       break
     case '30d':
     default:
-      startDate = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000))
+      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
   }
 
   return { startDate, endDate: now }
 }
 
-function getMonthsFromRange(range = '30d') {
-  switch (range) {
-    case '7d':
-      return 1
-    case '90d':
-      return 3
-    case '1y':
-      return 12
-    case '30d':
-    default:
-      return 6
-  }
+// For short ranges (7d, 30d) group by DAY; for longer ranges group by MONTH
+function shouldGroupByDay(range) {
+  return range === '7d' || range === '30d'
 }
 
 function getUserObjectId(req) {
@@ -47,69 +38,65 @@ function getRangeParam(req) {
   return req.query.range || req.query.period || '30d'
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Monthly Trend — daily grouping for 7d/30d, monthly for 90d/1y
+// ─────────────────────────────────────────────────────────────────────────────
 export const getMonthlyTrend = asyncHandler(async (req, res) => {
   const range = getRangeParam(req)
-  const months = Number(req.query.months) || getMonthsFromRange(range)
-  const now = new Date()
-  const startDate = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1)
+  const { startDate, endDate } = parseRange(range)
   const userId = getUserObjectId(req)
+  const byDay = shouldGroupByDay(range)
 
-  console.log(`[analytics] monthly-trend user=${req.user.id} months=${months}`)
+  console.log(`[analytics] monthly-trend user=${req.user.id} range=${range} byDay=${byDay}`)
 
-  const trend = await Transaction.aggregate([
-    {
-      $match: {
-        userId,
-        date: { $gte: startDate }
-      }
-    },
-    {
-      $group: {
-        _id: {
-          year: { $year: '$date' },
-          month: { $month: '$date' }
-        },
-        income: {
-          $sum: {
-            $cond: [{ $eq: ['$type', 'income'] }, '$amount', 0]
-          }
-        },
-        expenses: {
-          $sum: {
-            $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0]
-          }
+  const groupId = byDay
+    ? { year: { $year: '$date' }, month: { $month: '$date' }, day: { $dayOfMonth: '$date' } }
+    : { year: { $year: '$date' }, month: { $month: '$date' } }
+
+  const labelProject = byDay
+    ? {
+        $dateToString: {
+          format: '%d %b',
+          date: { $dateFromParts: { year: '$_id.year', month: '$_id.month', day: '$_id.day' } }
         }
       }
-    },
+    : {
+        $dateToString: {
+          format: '%b %Y',
+          date: { $dateFromParts: { year: '$_id.year', month: '$_id.month' } }
+        }
+      }
+
+  const sortStage = byDay
+    ? { '_id.year': 1, '_id.month': 1, '_id.day': 1 }
+    : { '_id.year': 1, '_id.month': 1 }
+
+  const trend = await Transaction.aggregate([
+    { $match: { userId, date: { $gte: startDate, $lte: endDate } } },
     {
-      $sort: { '_id.year': 1, '_id.month': 1 }
+      $group: {
+        _id: groupId,
+        income:   { $sum: { $cond: [{ $eq: ['$type', 'income'] },  '$amount', 0] } },
+        expenses: { $sum: { $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0] } }
+      }
     },
+    { $sort: sortStage },
     {
       $project: {
         _id: 0,
-        month: {
-          $dateToString: {
-            format: '%b %Y',
-            date: {
-              $dateFromParts: {
-                year: '$_id.year',
-                month: '$_id.month'
-              }
-            }
-          }
-        },
-        income: 1,
+        month: labelProject,   // frontend still reads "month" key
+        income:   1,
         expenses: 1
       }
     }
   ])
 
-  res.json({
-    success: true,
-    data: { trend }
-  })
+  res.json({ success: true, data: { trend } })
 })
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Category Breakdown
+// ─────────────────────────────────────────────────────────────────────────────
 export const getCategoryBreakdown = asyncHandler(async (req, res) => {
   const range = getRangeParam(req)
   const { startDate, endDate } = parseRange(range)
@@ -118,45 +105,28 @@ export const getCategoryBreakdown = asyncHandler(async (req, res) => {
   console.log(`[analytics] category-breakdown user=${req.user.id} range=${range}`)
 
   const categories = await Transaction.aggregate([
-    {
-      $match: {
-        userId,
-        type: 'expense',
-        date: { $gte: startDate, $lte: endDate }
-      }
-    },
-    {
-      $lookup: {
-        from: 'categories',
-        localField: 'category',
-        foreignField: '_id',
-        as: 'categoryInfo'
-      }
-    },
-    {
-      $unwind: '$categoryInfo'
-    },
+    { $match: { userId, type: 'expense', date: { $gte: startDate, $lte: endDate } } },
+    { $lookup: { from: 'categories', localField: 'category', foreignField: '_id', as: 'categoryInfo' } },
+    { $unwind: '$categoryInfo' },
     {
       $group: {
-        _id: '$category',
+        _id:    '$category',
         amount: { $sum: '$amount' },
-        count: { $sum: 1 },
-        name: { $first: '$categoryInfo.name' },
-        color: { $first: '$categoryInfo.color' },
-        icon: { $first: '$categoryInfo.icon' }
+        count:  { $sum: 1 },
+        name:   { $first: '$categoryInfo.name' },
+        color:  { $first: '$categoryInfo.color' },
+        icon:   { $first: '$categoryInfo.icon' }
       }
     },
-    {
-      $sort: { amount: -1 }
-    }
+    { $sort: { amount: -1 } }
   ])
 
-  res.json({
-    success: true,
-    data: { categories }
-  })
+  res.json({ success: true, data: { categories } })
 })
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Top Categories
+// ─────────────────────────────────────────────────────────────────────────────
 export const getTopCategories = asyncHandler(async (req, res) => {
   const range = getRangeParam(req)
   const { startDate, endDate } = parseRange(range)
@@ -165,136 +135,99 @@ export const getTopCategories = asyncHandler(async (req, res) => {
   console.log(`[analytics] top-categories user=${req.user.id} range=${range}`)
 
   const categories = await Transaction.aggregate([
-    {
-      $match: {
-        userId,
-        type: 'expense',
-        date: { $gte: startDate, $lte: endDate }
-      }
-    },
-    {
-      $lookup: {
-        from: 'categories',
-        localField: 'category',
-        foreignField: '_id',
-        as: 'categoryInfo'
-      }
-    },
-    {
-      $unwind: '$categoryInfo'
-    },
+    { $match: { userId, type: 'expense', date: { $gte: startDate, $lte: endDate } } },
+    { $lookup: { from: 'categories', localField: 'category', foreignField: '_id', as: 'categoryInfo' } },
+    { $unwind: '$categoryInfo' },
     {
       $group: {
-        _id: '$category',
+        _id:    '$category',
         amount: { $sum: '$amount' },
-        count: { $sum: 1 },
-        name: { $first: '$categoryInfo.name' },
-        color: { $first: '$categoryInfo.color' },
-        icon: { $first: '$categoryInfo.icon' }
+        count:  { $sum: 1 },
+        name:   { $first: '$categoryInfo.name' },
+        color:  { $first: '$categoryInfo.color' },
+        icon:   { $first: '$categoryInfo.icon' }
       }
     },
-    {
-      $sort: { amount: -1 }
-    },
-    {
-      $limit: 6
-    }
+    { $sort: { amount: -1 } },
+    { $limit: 6 }
   ])
 
-  res.json({
-    success: true,
-    data: { categories }
-  })
+  res.json({ success: true, data: { categories } })
 })
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Spending Heatmap
+// ─────────────────────────────────────────────────────────────────────────────
 export const getSpendingHeatmap = asyncHandler(async (req, res) => {
   const range = getRangeParam(req)
   const { startDate, endDate } = parseRange(range === '1y' ? '90d' : range)
   const userId = getUserObjectId(req)
 
   const heatmap = await Transaction.aggregate([
-    {
-      $match: {
-        userId,
-        type: 'expense',
-        date: { $gte: startDate, $lte: endDate }
-      }
-    },
+    { $match: { userId, type: 'expense', date: { $gte: startDate, $lte: endDate } } },
     {
       $group: {
-        _id: {
-          $dateToString: {
-            format: '%Y-%m-%d',
-            date: '$date'
-          }
-        },
+        _id:    { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
         amount: { $sum: '$amount' },
-        count: { $sum: 1 }
+        count:  { $sum: 1 }
       }
     },
-    {
-      $sort: { '_id': 1 }
-    }
+    { $sort: { _id: 1 } }
   ])
 
-  res.json({
-    success: true,
-    data: { heatmap }
-  })
+  res.json({ success: true, data: { heatmap } })
 })
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Savings Growth — daily for 7d/30d, monthly for 90d/1y
+// ─────────────────────────────────────────────────────────────────────────────
 export const getSavingsGrowth = asyncHandler(async (req, res) => {
   const range = getRangeParam(req)
-  const months = Number(req.query.months) || getMonthsFromRange(range === '7d' ? '30d' : range)
-  const now = new Date()
-  const startDate = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1)
+  const { startDate, endDate } = parseRange(range)
   const userId = getUserObjectId(req)
+  const byDay = shouldGroupByDay(range)
 
-  const savings = await Transaction.aggregate([
-    {
-      $match: {
-        userId,
-        date: { $gte: startDate }
-      }
-    },
-    {
-      $group: {
-        _id: {
-          year: { $year: '$date' },
-          month: { $month: '$date' }
-        },
-        income: {
-          $sum: {
-            $cond: [{ $eq: ['$type', 'income'] }, '$amount', 0]
-          }
-        },
-        expenses: {
-          $sum: {
-            $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0]
-          }
+  console.log(`[analytics] savings-growth user=${req.user.id} range=${range} byDay=${byDay}`)
+
+  const groupId = byDay
+    ? { year: { $year: '$date' }, month: { $month: '$date' }, day: { $dayOfMonth: '$date' } }
+    : { year: { $year: '$date' }, month: { $month: '$date' } }
+
+  const labelProject = byDay
+    ? {
+        $dateToString: {
+          format: '%d %b',
+          date: { $dateFromParts: { year: '$_id.year', month: '$_id.month', day: '$_id.day' } }
         }
       }
-    },
+    : {
+        $dateToString: {
+          format: '%b %Y',
+          date: { $dateFromParts: { year: '$_id.year', month: '$_id.month' } }
+        }
+      }
+
+  const sortStage = byDay
+    ? { '_id.year': 1, '_id.month': 1, '_id.day': 1 }
+    : { '_id.year': 1, '_id.month': 1 }
+
+  const savings = await Transaction.aggregate([
+    { $match: { userId, date: { $gte: startDate, $lte: endDate } } },
     {
-      $sort: { '_id.year': 1, '_id.month': 1 }
+      $group: {
+        _id: groupId,
+        income:   { $sum: { $cond: [{ $eq: ['$type', 'income'] },  '$amount', 0] } },
+        expenses: { $sum: { $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0] } }
+      }
     },
+    { $sort: sortStage },
     {
       $project: {
         _id: 0,
-        month: {
-          $dateToString: {
-            format: '%b %Y',
-            date: {
-              $dateFromParts: {
-                year: '$_id.year',
-                month: '$_id.month'
-              }
-            }
-          }
-        },
-        income: 1,
+        month: labelProject,
+        income:   1,
         expenses: 1,
-        savings: { $subtract: ['$income', '$expenses'] }
+        savings:  { $subtract: ['$income', '$expenses'] }
       }
     }
   ])
@@ -302,71 +235,44 @@ export const getSavingsGrowth = asyncHandler(async (req, res) => {
   let cumulativeSavings = 0
   const growth = savings.map((item) => {
     cumulativeSavings += item.savings
-    return {
-      ...item,
-      cumulativeSavings
-    }
+    return { ...item, cumulativeSavings }
   })
 
-  res.json({
-    success: true,
-    data: { growth }
-  })
+  res.json({ success: true, data: { growth } })
 })
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Wallet Usage
+// ─────────────────────────────────────────────────────────────────────────────
 export const getWalletUsage = asyncHandler(async (req, res) => {
   const range = getRangeParam(req)
   const { startDate, endDate } = parseRange(range)
   const userId = getUserObjectId(req)
 
   const walletStats = await Transaction.aggregate([
-    {
-      $match: {
-        userId,
-        date: { $gte: startDate, $lte: endDate }
-      }
-    },
-    {
-      $lookup: {
-        from: 'wallets',
-        localField: 'wallet',
-        foreignField: '_id',
-        as: 'walletInfo'
-      }
-    },
-    {
-      $unwind: '$walletInfo'
-    },
+    { $match: { userId, date: { $gte: startDate, $lte: endDate } } },
+    { $lookup: { from: 'wallets', localField: 'wallet', foreignField: '_id', as: 'walletInfo' } },
+    { $unwind: '$walletInfo' },
     {
       $group: {
-        _id: '$wallet',
-        name: { $first: '$walletInfo.name' },
-        type: { $first: '$walletInfo.type' },
-        color: { $first: '$walletInfo.color' },
-        income: {
-          $sum: {
-            $cond: [{ $eq: ['$type', 'income'] }, '$amount', 0]
-          }
-        },
-        expenses: {
-          $sum: {
-            $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0]
-          }
-        },
+        _id:          '$wallet',
+        name:         { $first: '$walletInfo.name' },
+        type:         { $first: '$walletInfo.type' },
+        color:        { $first: '$walletInfo.color' },
+        income:       { $sum: { $cond: [{ $eq: ['$type', 'income'] },  '$amount', 0] } },
+        expenses:     { $sum: { $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0] } },
         transactions: { $sum: 1 }
       }
     },
-    {
-      $sort: { transactions: -1 }
-    }
+    { $sort: { transactions: -1 } }
   ])
 
-  res.json({
-    success: true,
-    data: { walletStats }
-  })
+  res.json({ success: true, data: { walletStats } })
 })
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Dashboard Stats
+// ─────────────────────────────────────────────────────────────────────────────
 export const getDashboardStats = asyncHandler(async (req, res) => {
   const range = getRangeParam(req)
   const { startDate } = parseRange(range)
@@ -375,249 +281,125 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
   const durationMs = now.getTime() - startDate.getTime()
   const previousStartDate = new Date(startDate.getTime() - durationMs)
 
-  console.log(`[analytics] dashboard-stats user=${req.user.id} range=${range}`)
-
-  const currentStats = await Transaction.aggregate([
-    {
-      $match: {
-        userId,
-        date: { $gte: startDate }
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        totalIncome: {
-          $sum: {
-            $cond: [{ $eq: ['$type', 'income'] }, '$amount', 0]
-          }
-        },
-        totalExpenses: {
-          $sum: {
-            $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0]
-          }
+  const [currentStats, previousStats, wallets] = await Promise.all([
+    Transaction.aggregate([
+      { $match: { userId, date: { $gte: startDate } } },
+      {
+        $group: {
+          _id: null,
+          totalIncome:   { $sum: { $cond: [{ $eq: ['$type', 'income'] },  '$amount', 0] } },
+          totalExpenses: { $sum: { $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0] } }
         }
       }
-    }
-  ])
-
-  const previousStats = await Transaction.aggregate([
-    {
-      $match: {
-        userId,
-        date: { $gte: previousStartDate, $lt: startDate }
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        totalIncome: {
-          $sum: {
-            $cond: [{ $eq: ['$type', 'income'] }, '$amount', 0]
-          }
-        },
-        totalExpenses: {
-          $sum: {
-            $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0]
-          }
+    ]),
+    Transaction.aggregate([
+      { $match: { userId, date: { $gte: previousStartDate, $lt: startDate } } },
+      {
+        $group: {
+          _id: null,
+          totalIncome:   { $sum: { $cond: [{ $eq: ['$type', 'income'] },  '$amount', 0] } },
+          totalExpenses: { $sum: { $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0] } }
         }
       }
-    }
+    ]),
+    Wallet.find({ userId, isArchived: false }).select('balance')
   ])
 
-  const wallets = await Wallet.find({
-    userId,
-    isArchived: false
-  }).select('balance')
+  const totalBalance   = wallets.reduce((sum, w) => sum + w.balance, 0)
+  const current        = currentStats[0]  || { totalIncome: 0, totalExpenses: 0 }
+  const previous       = previousStats[0] || { totalIncome: 0, totalExpenses: 0 }
+  const currentSavings = current.totalIncome  - current.totalExpenses
+  const prevSavings    = previous.totalIncome - previous.totalExpenses
 
-  const totalBalance = wallets.reduce((sum, wallet) => sum + wallet.balance, 0)
-  const current = currentStats[0] || { totalIncome: 0, totalExpenses: 0 }
-  const previous = previousStats[0] || { totalIncome: 0, totalExpenses: 0 }
-  const currentSavings = current.totalIncome - current.totalExpenses
-  const previousSavings = previous.totalIncome - previous.totalExpenses
-
-  const calculateChange = (currentValue, previousValue) => {
-    if (previousValue === 0) return currentValue > 0 ? 100 : 0
-    return ((currentValue - previousValue) / previousValue) * 100
-  }
-
-  const stats = {
-    totalBalance,
-    totalIncome: current.totalIncome,
-    totalExpenses: current.totalExpenses,
-    totalSavings: currentSavings,
-    balanceChange: 0,
-    incomeChange: calculateChange(current.totalIncome, previous.totalIncome),
-    expenseChange: calculateChange(current.totalExpenses, previous.totalExpenses),
-    savingsChange: calculateChange(currentSavings, previousSavings)
-  }
+  const pct = (cur, prev) => prev === 0 ? (cur > 0 ? 100 : 0) : ((cur - prev) / prev) * 100
 
   res.json({
     success: true,
-    data: { stats }
+    data: {
+      stats: {
+        totalBalance,
+        totalIncome:   current.totalIncome,
+        totalExpenses: current.totalExpenses,
+        totalSavings:  currentSavings,
+        balanceChange: 0,
+        incomeChange:  pct(current.totalIncome,   previous.totalIncome),
+        expenseChange: pct(current.totalExpenses, previous.totalExpenses),
+        savingsChange: pct(currentSavings, prevSavings)
+      }
+    }
   })
 })
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Export CSV
+// ─────────────────────────────────────────────────────────────────────────────
 export const exportAnalytics = asyncHandler(async (req, res) => {
   const range = getRangeParam(req)
   const { startDate, endDate } = parseRange(range)
   const userId = getUserObjectId(req)
-  console.log(`[analytics] export user=${req.user.id} range=${range} start=${startDate.toISOString()} end=${endDate.toISOString()}`)
 
   const [summaryAgg, categoryAgg, topAgg, transactions] = await Promise.all([
     Transaction.aggregate([
-      {
-        $match: {
-          userId,
-          date: { $gte: startDate, $lte: endDate }
-        }
-      },
+      { $match: { userId, date: { $gte: startDate, $lte: endDate } } },
       {
         $group: {
           _id: null,
-          totalIncome: {
-            $sum: { $cond: [{ $eq: ['$type', 'income'] }, '$amount', 0] }
-          },
-          totalExpenses: {
-            $sum: { $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0] }
-          },
+          totalIncome:      { $sum: { $cond: [{ $eq: ['$type', 'income'] },  '$amount', 0] } },
+          totalExpenses:    { $sum: { $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0] } },
           transactionCount: { $sum: 1 }
         }
       }
     ]),
     Transaction.aggregate([
-      {
-        $match: {
-          userId,
-          type: 'expense',
-          date: { $gte: startDate, $lte: endDate }
-        }
-      },
-      {
-        $lookup: {
-          from: 'categories',
-          localField: 'category',
-          foreignField: '_id',
-          as: 'categoryInfo'
-        }
-      },
+      { $match: { userId, type: 'expense', date: { $gte: startDate, $lte: endDate } } },
+      { $lookup: { from: 'categories', localField: 'category', foreignField: '_id', as: 'categoryInfo' } },
       { $unwind: '$categoryInfo' },
-      {
-        $group: {
-          _id: '$category',
-          category: { $first: '$categoryInfo.name' },
-          amount: { $sum: '$amount' }
-        }
-      },
+      { $group: { _id: '$category', category: { $first: '$categoryInfo.name' }, amount: { $sum: '$amount' } } },
       { $sort: { amount: -1 } }
     ]),
     Transaction.aggregate([
-      {
-        $match: {
-          userId,
-          type: 'expense',
-          date: { $gte: startDate, $lte: endDate }
-        }
-      },
-      {
-        $lookup: {
-          from: 'categories',
-          localField: 'category',
-          foreignField: '_id',
-          as: 'categoryInfo'
-        }
-      },
+      { $match: { userId, type: 'expense', date: { $gte: startDate, $lte: endDate } } },
+      { $lookup: { from: 'categories', localField: 'category', foreignField: '_id', as: 'categoryInfo' } },
       { $unwind: '$categoryInfo' },
-      {
-        $group: {
-          _id: '$category',
-          category: { $first: '$categoryInfo.name' },
-          total: { $sum: '$amount' }
-        }
-      },
+      { $group: { _id: '$category', category: { $first: '$categoryInfo.name' }, total: { $sum: '$amount' } } },
       { $sort: { total: -1 } },
       { $limit: 6 }
     ]),
     Transaction.aggregate([
-      {
-        $match: {
-          userId,
-          date: { $gte: startDate, $lte: endDate }
-        }
-      },
-      {
-        $lookup: {
-          from: 'categories',
-          localField: 'category',
-          foreignField: '_id',
-          as: 'categoryInfo'
-        }
-      },
-      {
-        $unwind: {
-          path: '$categoryInfo',
-          preserveNullAndEmptyArrays: true
-        }
-      },
+      { $match: { userId, date: { $gte: startDate, $lte: endDate } } },
+      { $lookup: { from: 'categories', localField: 'category', foreignField: '_id', as: 'categoryInfo' } },
+      { $unwind: { path: '$categoryInfo', preserveNullAndEmptyArrays: true } },
       { $sort: { date: -1 } },
-      {
-        $project: {
-          _id: 0,
-          date: 1,
-          category: '$categoryInfo.name',
-          type: 1,
-          amount: 1,
-          description: '$notes'
-        }
-      }
+      { $project: { _id: 0, date: 1, category: '$categoryInfo.name', type: 1, amount: 1, description: '$notes' } }
     ])
   ])
 
-  const summary = summaryAgg[0] || {
-    totalIncome: 0,
-    totalExpenses: 0,
-    transactionCount: 0
-  }
-  const totalSavings = summary.totalIncome - summary.totalExpenses
+  const summary = summaryAgg[0] || { totalIncome: 0, totalExpenses: 0, transactionCount: 0 }
+  const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
 
-  const escapeCsv = (value) => {
-    const text = String(value ?? '').replace(/"/g, '""')
-    return `"${text}"`
-  }
-
-  const lines = []
-  lines.push('Section,Metric,Value')
-  lines.push(`Summary,Range,${range}`)
-  lines.push(`Summary,Start Date,${startDate.toISOString()}`)
-  lines.push(`Summary,End Date,${endDate.toISOString()}`)
-  lines.push(`Summary,Total Income,${summary.totalIncome}`)
-  lines.push(`Summary,Total Expenses,${summary.totalExpenses}`)
-  lines.push(`Summary,Savings,${totalSavings}`)
-  lines.push(`Summary,Transactions,${summary.transactionCount}`)
-  lines.push('')
-  lines.push('Category Breakdown,Category,Amount')
-  categoryAgg.forEach((item) => {
-    lines.push(`Category Breakdown,${escapeCsv(item.category)},${item.amount}`)
-  })
-  lines.push('')
-  lines.push('Top Categories,Category,Total')
-  topAgg.forEach((item) => {
-    lines.push(`Top Categories,${escapeCsv(item.category)},${item.total}`)
-  })
-  lines.push('')
-  lines.push('Date,Category,Type,Amount,Description')
-  transactions.forEach((tx) => {
-    lines.push([
+  const lines = [
+    'Section,Metric,Value',
+    `Summary,Range,${range}`,
+    `Summary,Start Date,${startDate.toISOString()}`,
+    `Summary,End Date,${endDate.toISOString()}`,
+    `Summary,Total Income,${summary.totalIncome}`,
+    `Summary,Total Expenses,${summary.totalExpenses}`,
+    `Summary,Savings,${summary.totalIncome - summary.totalExpenses}`,
+    `Summary,Transactions,${summary.transactionCount}`,
+    '', 'Category Breakdown,Category,Amount',
+    ...categoryAgg.map(i => `Category Breakdown,${esc(i.category)},${i.amount}`),
+    '', 'Top Categories,Category,Total',
+    ...topAgg.map(i => `Top Categories,${esc(i.category)},${i.total}`),
+    '', 'Date,Category,Type,Amount,Description',
+    ...transactions.map(tx => [
       tx.date ? new Date(tx.date).toISOString() : '',
-      escapeCsv(tx.category || 'Unknown'),
-      tx.type || '',
-      tx.amount ?? 0,
-      escapeCsv(tx.description || '')
+      esc(tx.category || 'Unknown'),
+      tx.type || '', tx.amount ?? 0,
+      esc(tx.description || '')
     ].join(','))
-  })
+  ]
 
-  const csv = lines.join('\n')
   res.setHeader('Content-Type', 'text/csv')
   res.setHeader('Content-Disposition', `attachment; filename="analytics-${range}.csv"`)
-  res.status(200).send(csv)
+  res.status(200).send(lines.join('\n'))
 })

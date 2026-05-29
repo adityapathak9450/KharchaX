@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   TrendingUp,
@@ -6,9 +7,8 @@ import {
   BarChart3,
   PieChart,
   Download,
-  TrendingDown as TrendingDownIcon
+  RefreshCw
 } from 'lucide-react'
-
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../../lib/apiClient'
 import { formatCurrency } from '../../utils/format'
@@ -20,720 +20,386 @@ import {
   SelectContent,
   SelectItem,
 } from '../../components/ui/select'
-
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  PieChart as RePieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  AreaChart,
-  Area
+  AreaChart, Area,
+  BarChart, Bar,
+  LineChart, Line,
+  PieChart as RePieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Legend
 } from 'recharts'
 
+// ─── helpers ────────────────────────────────────────────────────────────────
+
+const RANGE_LABELS = {
+  '7d':  'Last 7 days',
+  '30d': 'Last 30 days',
+  '90d': 'Last 90 days',
+  '1y':  'Last year',
+}
+
+const FILE_LABELS = {
+  '7d':  'last-7-days',
+  '30d': 'last-30-days',
+  '90d': 'last-90-days',
+  '1y':  'last-year',
+}
+
+const CHART_COLORS = [
+  '#6366f1','#8b5cf6','#ec4899','#f43f5e','#f97316',
+  '#eab308','#84cc16','#22c55e','#14b8a6','#06b6d4',
+]
+
+const tooltipStyle = {
+  contentStyle: {
+    backgroundColor: '#1F2937',
+    border: '1px solid #374151',
+    borderRadius: '8px',
+    fontSize: '12px',
+  },
+  labelStyle: { color: '#F3F4F6' },
+}
+
+// Card skeleton
+function CardSkeleton() {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 animate-pulse">
+      <div className="h-4 bg-white/10 rounded w-24 mb-3" />
+      <div className="h-8 bg-white/10 rounded w-36" />
+    </div>
+  )
+}
+
+// Chart skeleton
+function ChartSkeleton({ height = 300 }) {
+  return (
+    <div
+      className="rounded-xl bg-white/5 animate-pulse flex items-center justify-center"
+      style={{ height }}
+    >
+      <BarChart3 className="h-8 w-8 text-white/10" />
+    </div>
+  )
+}
+
+// ─── main component ──────────────────────────────────────────────────────────
+
 export default function AnalyticsPage() {
-  const [timeRange, setTimeRange] = useState('30d')
+  const [timeRange, setTimeRange]   = useState('30d')
   const [isExporting, setIsExporting] = useState(false)
-
-  useEffect(() => {
-    console.log('[analytics] selectedRange changed:', timeRange)
-  }, [timeRange])
-
-  /*
-    ========================================================
-    FETCH MONTHLY TREND (OPTIMIZED)
-    ========================================================
-  */
-
-  const { data: monthlyTrend, isLoading: trendLoading } = useQuery({
-    queryKey: ['monthly-trend', timeRange],
-    queryFn: async () => {
-      const res = await apiClient.get('/analytics/monthly-trend', {
-        params: { range: timeRange }
-      })
-      console.log('=== MONTHLY TREND API RESPONSE ===')
-      console.log('RESPONSE DATA:', res.data)
-      console.log('TREND DATA:', res.data.data?.trend)
-      
-      // Return ONLY real database data - NO STATIC FALLBACKS
-      return res.data.data
-    },
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchInterval: 30000
-  })
-
-  /*
-    ========================================================
-    FETCH CATEGORY BREAKDOWN (OPTIMIZED)
-    ========================================================
-  */
-
-  const { data: categoryBreakdown, isLoading: categoryLoading } = useQuery({
-    queryKey: ['category-breakdown', timeRange],
-    queryFn: async () => {
-      const res = await apiClient.get('/analytics/category-breakdown', {
-        params: { range: timeRange }
-      })
-      console.log('=== CATEGORY BREAKDOWN API RESPONSE ===')
-      console.log('RESPONSE DATA:', res.data)
-      console.log('CATEGORIES DATA:', res.data.data?.categories)
-      
-      // Return ONLY real database data - NO STATIC FALLBACKS
-      return res.data.data
-    },
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchInterval: 30000
-  })
-
-  /*
-    ========================================================
-    FETCH WALLET USAGE (OPTIMIZED)
-    ========================================================
-  */
-
-  const { data: walletUsage, isLoading: walletLoading } = useQuery({
-    queryKey: ['wallet-usage', timeRange],
-    queryFn: async () => {
-      const res = await apiClient.get('/analytics/wallet-usage', {
-        params: { range: timeRange }
-      })
-      console.log('=== WALLET USAGE API RESPONSE ===')
-      console.log('RESPONSE DATA:', res.data)
-      console.log('WALLET STATS:', res.data.data?.walletStats)
-      
-      // Return ONLY real database data - NO STATIC FALLBACKS
-      return res.data.data
-    },
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchInterval: 30000
-  })
-
-  /*
-    ========================================================
-    FETCH SAVINGS GROWTH (OPTIMIZED)
-    ========================================================
-  */
-
-  const { data: savingsGrowth, isLoading: savingsLoading } = useQuery({
-    queryKey: ['savings-growth', timeRange],
-    queryFn: async () => {
-      const res = await apiClient.get('/analytics/savings-growth', {
-        params: { range: timeRange }
-      })
-      console.log('=== SAVINGS GROWTH API RESPONSE ===')
-      console.log('RESPONSE DATA:', res.data)
-      console.log('GROWTH DATA:', res.data.data?.growth)
-      
-      // Return ONLY real database data - NO STATIC FALLBACKS
-      return res.data.data
-    },
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchInterval: 30000
-  })
-
-  /*
-    ========================================================
-    FETCH TOP CATEGORIES (OPTIMIZED)
-    ========================================================
-  */
-
-  const { data: topCategories, isLoading: topLoading } = useQuery({
-    queryKey: ['top-categories', timeRange],
-    queryFn: async () => {
-      const res = await apiClient.get('/analytics/top-categories', {
-        params: { range: timeRange }
-      })
-      console.log('=== TOP CATEGORIES API RESPONSE ===')
-      console.log('RESPONSE DATA:', res.data)
-      console.log('CATEGORIES DATA:', res.data.data?.categories)
-      
-      // Return ONLY real database data - NO STATIC FALLBACKS
-      return res.data.data
-    },
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchInterval: 30000
-  })
-
-  // Loading state
-  const isLoading = trendLoading || categoryLoading || walletLoading || savingsLoading || topLoading
-
-  // Auto-invalidate queries for real-time updates
   const queryClient = useQueryClient()
-  
-  const refreshAllCharts = () => {
-    console.log('REFRESHING ALL CHARTS FOR REAL-TIME UPDATES')
-    queryClient.invalidateQueries(['monthly-trend'])
-    queryClient.invalidateQueries(['category-breakdown'])
-    queryClient.invalidateQueries(['wallet-usage'])
-    queryClient.invalidateQueries(['savings-growth'])
-    queryClient.invalidateQueries(['top-categories'])
-    queryClient.invalidateQueries(['all-transactions'])
-    queryClient.invalidateQueries(['wallets'])
-    queryClient.invalidateQueries(['recent-transactions'])
+
+  // shared fetch helper — always fresh, keyed by timeRange
+  const fetchAnalytics = useCallback(
+    (path) => (range) =>
+      apiClient
+        .get(path, { params: { range } })
+        .then((res) => res.data.data),
+    []
+  )
+
+  const queryOpts = (key, path) => ({
+    queryKey: [key, timeRange],
+    queryFn:  () => fetchAnalytics(path)(timeRange),
+    // ← CRITICAL: no staleTime / cacheTime so every range change hits the server
+    staleTime: 0,
+    gcTime:    0,
+    refetchOnWindowFocus: false,
+  })
+
+  const { data: trendData,    isLoading: trendLoading    } = useQuery(queryOpts('monthly-trend',       '/analytics/monthly-trend'))
+  const { data: categoryData, isLoading: categoryLoading } = useQuery(queryOpts('category-breakdown',  '/analytics/category-breakdown'))
+  const { data: walletData,   isLoading: walletLoading   } = useQuery(queryOpts('wallet-usage',        '/analytics/wallet-usage'))
+  const { data: savingsData,  isLoading: savingsLoading  } = useQuery(queryOpts('savings-growth',      '/analytics/savings-growth'))
+  const { data: topData,      isLoading: topLoading      } = useQuery(queryOpts('top-categories',      '/analytics/top-categories'))
+
+  // ── summaries (from trend data) ────────────────────────────────────────────
+  const trend      = trendData?.trend      || []
+  const categories = categoryData?.categories || []
+  const wallets    = walletData?.walletStats  || []
+  const growth     = savingsData?.growth      || []
+  const topCats    = topData?.categories      || []
+
+  const totalIncome   = trend.reduce((s, i) => s + (i.income   || 0), 0)
+  const totalExpenses = trend.reduce((s, i) => s + (i.expenses || 0), 0)
+  const totalSavings  = totalIncome - totalExpenses
+  const savingsRate   = totalIncome > 0 ? (totalSavings / totalIncome) * 100 : 0
+
+  // ── range change: invalidate everything ───────────────────────────────────
+  const handleRangeChange = (val) => {
+    setTimeRange(val)
+    // Flush cached data for all analytics keys so charts re-render fresh
+    ;['monthly-trend','category-breakdown','wallet-usage','savings-growth','top-categories']
+      .forEach((k) => queryClient.removeQueries({ queryKey: [k] }))
   }
 
-  const rangeLabelMap = {
-    '7d': 'last-7-days',
-    '30d': 'last-30-days',
-    '90d': 'last-90-days',
-    '1y': 'last-year',
-  }
-
+  // ── export ─────────────────────────────────────────────────────────────────
   const handleExport = async () => {
     try {
       setIsExporting(true)
-      console.log('[analytics] export triggered for range:', timeRange)
       const response = await apiClient.get('/analytics/export', {
         params: { range: timeRange },
         responseType: 'blob',
       })
-
-      const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' })
-      const url = window.URL.createObjectURL(blob)
+      const url  = window.URL.createObjectURL(new Blob([response.data], { type: 'text/csv' }))
       const link = document.createElement('a')
       link.href = url
-      link.download = `analytics-${rangeLabelMap[timeRange] || timeRange}.csv`
+      link.download = `analytics-${FILE_LABELS[timeRange] || timeRange}.csv`
       document.body.appendChild(link)
       link.click()
       link.remove()
       window.URL.revokeObjectURL(url)
       toast.success('Analytics exported successfully')
-    } catch (error) {
-      console.error('[analytics] export failed:', error)
-      toast.error(error.response?.data?.message || 'Failed to export analytics')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to export analytics')
     } finally {
       setIsExporting(false)
     }
   }
 
-  // =========================
-  // SUMMARY (SAFE CALCULATIONS)
-  // =========================
-
-  const totalIncome =
-    monthlyTrend?.trend?.reduce(
-      (sum, item) => sum + (item.income || 0),
-      0
-    ) || 0
-
-  const totalExpenses =
-    monthlyTrend?.trend?.reduce(
-      (sum, item) => sum + (item.expenses || 0),
-      0
-    ) || 0
-
-  const totalSavings = totalIncome - totalExpenses
-  const savingsRate =
-    totalIncome > 0
-      ? (totalSavings / totalIncome) * 100
-      : 0
-
-  // =========================
-  // LIVE DEBUGGING LOGS
-  // =========================
-
-  console.log('=== FRONTEND CHART RENDERING DEBUG ===')
-  console.log('MONTHLY TREND DATA:', monthlyTrend?.trend)
-  console.log('CATEGORY BREAKDOWN DATA:', categoryBreakdown?.categories)
-  console.log('WALLET USAGE DATA:', walletUsage?.walletStats)
-  console.log('SAVINGS GROWTH DATA:', savingsGrowth?.growth)
-  console.log('TOP CATEGORIES DATA:', topCategories?.categories)
-  console.log('TOTAL INCOME CALCULATED:', totalIncome)
-  console.log('TOTAL EXPENSES CALCULATED:', totalExpenses)
-  console.log('TOTAL SAVINGS CALCULATED:', totalSavings)
-
-  const COLORS = [
-    '#6366f1',
-    '#8b5cf6',
-    '#ec4899',
-    '#f43f5e',
-    '#f97316',
-    '#eab308',
-    '#84cc16',
-    '#22c55e',
-    '#14b8a6',
-    '#06b6d4'
-  ]
-
-  // =========================
-  // SKELETON LOADER COMPONENT
-  // =========================
-
-  const SkeletonLoader = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: i * 0.1 }}
-            className="rounded-2xl border border-white/10 bg-white/[0.03] p-6"
-          >
-            <div className="animate-pulse">
-              <div className="h-4 bg-white/10 rounded w-20 mb-2"></div>
-              <div className="h-8 bg-white/10 rounded w-32"></div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {[1, 2].map((i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: i * 0.15 }}
-            className="rounded-2xl border border-white/10 bg-white/[0.03] p-6"
-          >
-            <div className="animate-pulse">
-              <div className="h-6 bg-white/10 rounded w-32 mb-4"></div>
-              <div className="h-[300px] bg-white/5 rounded"></div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  )
-
-  // Show skeleton loader while loading
-  if (isLoading) {
-    return <SkeletonLoader />
-  }
-
+  // ─────────────────────────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <motion.div 
+    <motion.div
       className="space-y-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.4 }}
     >
 
-      {/* HEADER */}
-
-      <motion.div 
-        className="flex items-center justify-between"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white">
-            Analytics
-          </h1>
-
-          <p className="text-gray-400 mt-1">
-            Deep insights into your financial patterns
-          </p>
+          <h1 className="text-2xl font-bold text-white">Analytics</h1>
+          <p className="text-gray-400 mt-1">Deep insights into your financial patterns</p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="w-44">
-            <Select value={timeRange} onValueChange={setTimeRange}>
+            <Select value={timeRange} onValueChange={handleRangeChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="7d">Last 7 days</SelectItem>
-                <SelectItem value="30d">Last 30 days</SelectItem>
-                <SelectItem value="90d">Last 90 days</SelectItem>
-                <SelectItem value="1y">Last year</SelectItem>
+                {Object.entries(RANGE_LABELS).map(([v, l]) => (
+                  <SelectItem key={v} value={v}>{l}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
-          <motion.button 
+          <button
             onClick={handleExport}
             disabled={isExporting}
-            className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors disabled:opacity-50"
           >
             <Download className="h-4 w-4" />
             {isExporting ? 'Exporting...' : 'Export'}
-          </motion.button>
+          </button>
         </div>
-      </motion.div>
+      </div>
 
-      {/* SUMMARY CARDS */}
+      {/* ── Summary Cards ──────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {trendLoading ? (
+          [1,2,3,4].map(i => <CardSkeleton key={i} />)
+        ) : (
+          <>
+            <SummaryCard
+              label="Total Income"
+              value={formatCurrency(totalIncome)}
+              icon={<TrendingUp className="w-4 h-4 text-green-400" />}
+              color="text-green-400"
+              glow="rgba(16,185,129,0.2)"
+            />
+            <SummaryCard
+              label="Total Expenses"
+              value={formatCurrency(totalExpenses)}
+              icon={<TrendingDown className="w-4 h-4 text-red-400" />}
+              color="text-red-400"
+              glow="rgba(239,68,68,0.2)"
+            />
+            <SummaryCard
+              label="Net Savings"
+              value={formatCurrency(totalSavings)}
+              icon={<BarChart3 className="w-4 h-4 text-blue-400" />}
+              color="text-blue-400"
+              glow="rgba(59,130,246,0.2)"
+            />
+            <SummaryCard
+              label="Savings Rate"
+              value={`${savingsRate.toFixed(1)}%`}
+              icon={<PieChart className="w-4 h-4 text-purple-400" />}
+              color="text-purple-400"
+              glow="rgba(139,92,246,0.2)"
+            />
+          </>
+        )}
+      </div>
 
-      <motion.div 
-        className="grid grid-cols-1 md:grid-cols-4 gap-4"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-      >
+      {/* ── Charts Grid ────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        <motion.div 
-          className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 hover:bg-white/[0.05] transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/10"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-          whileHover={{ 
-            scale: 1.05,
-            boxShadow: "0 10px 40px rgba(16, 185, 129, 0.2)"
-          }}
+        {/* Income vs Expenses — full width */}
+        <ChartCard
+          title="Income vs Expenses"
+          span2
+          loading={trendLoading}
+          legend={[
+            { color: '#10B981', label: 'Income' },
+            { color: '#EF4444', label: 'Expenses' },
+          ]}
         >
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-400">
-              Total Income
-            </p>
-            <TrendingUp className="w-4 h-4 text-green-400" />
-          </div>
-
-          <p className="text-2xl font-bold text-green-400 mt-2">
-            {formatCurrency(totalIncome)}
-          </p>
-        </motion.div>
-
-        <motion.div 
-          className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 hover:bg-white/[0.05] transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/10"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
-          whileHover={{ 
-            scale: 1.05,
-            boxShadow: "0 10px 40px rgba(239, 68, 68, 0.2)"
-          }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-400">
-              Total Expenses
-            </p>
-            <TrendingDownIcon className="w-4 h-4 text-red-400" />
-          </div>
-
-          <p className="text-2xl font-bold text-red-400 mt-2">
-            {formatCurrency(totalExpenses)}
-          </p>
-        </motion.div>
-
-        <motion.div 
-          className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 hover:bg-white/[0.05] transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/10"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.5 }}
-          whileHover={{ 
-            scale: 1.05,
-            boxShadow: "0 10px 40px rgba(59, 130, 246, 0.2)"
-          }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-400">
-              Net Savings
-            </p>
-            <BarChart3 className="w-4 h-4 text-blue-400" />
-          </div>
-
-          <p className="text-2xl font-bold text-blue-400 mt-2">
-            {formatCurrency(totalSavings)}
-          </p>
-        </motion.div>
-
-        <motion.div 
-          className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 hover:bg-white/[0.05] transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/10"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.6 }}
-          whileHover={{ 
-            scale: 1.05,
-            boxShadow: "0 10px 40px rgba(139, 92, 246, 0.2)"
-          }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-400">
-              Savings Rate
-            </p>
-            <PieChart className="w-4 h-4 text-purple-400" />
-          </div>
-
-          <p className="text-2xl font-bold text-purple-400 mt-2">
-            {savingsRate.toFixed(1)}%
-          </p>
-        </motion.div>
-
-      </motion.div>
-
-      {/* MAIN CHARTS */}
-
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-      {/* TREND */}
-
-      <motion.div 
-        className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 lg:col-span-2 hover:bg-white/[0.05] transition-all duration-300"
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, delay: 0.7 }}
-      >
-
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">
-            Income vs Expenses
-          </h3>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <span className="text-xs text-gray-400">Income</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <span className="text-xs text-gray-400">Expenses</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="h-[300px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart 
-              data={monthlyTrend?.trend || []}
-              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-            >
-
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={trend} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
               <defs>
-                <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#10B981" stopOpacity={0.1}/>
+                <linearGradient id="incG" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%"  stopColor="#10B981" stopOpacity={0.6} />
+                  <stop offset="95%" stopColor="#10B981" stopOpacity={0.05} />
                 </linearGradient>
-                <linearGradient id="expensesGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#EF4444" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#EF4444" stopOpacity={0.1}/>
+                <linearGradient id="expG" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%"  stopColor="#EF4444" stopOpacity={0.6} />
+                  <stop offset="95%" stopColor="#EF4444" stopOpacity={0.05} />
                 </linearGradient>
               </defs>
-
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#374151"
-                strokeOpacity={0.3}
-              />
-
-              <XAxis
-                dataKey="month"
-                stroke="#9CA3AF"
-                tick={{ fontSize: 12 }}
-                tickLine={{ stroke: '#374151' }}
-              />
-
-              <YAxis
-                stroke="#9CA3AF"
-                tick={{ fontSize: 12 }}
-                tickLine={{ stroke: '#374151' }}
-              />
-
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#1F2937',
-                  border: '1px solid #374151',
-                  borderRadius: '8px',
-                  fontSize: '12px'
-                }}
-                labelStyle={{ color: '#F3F4F6' }}
-              />
-
-              <Area
-                type="monotone"
-                dataKey="income"
-                stroke="#10B981"
-                strokeWidth={3}
-                fill="url(#incomeGradient)"
-                fillOpacity={0.6}
-                isAnimationActive={true}
-                animationDuration={1200}
-                animationEasing="ease-out"
-              />
-
-              <Area
-                type="monotone"
-                dataKey="expenses"
-                stroke="#EF4444"
-                strokeWidth={3}
-                fill="url(#expensesGradient)"
-                fillOpacity={0.6}
-                isAnimationActive={true}
-                animationDuration={1500}
-                animationEasing="ease-out"
-              />
-
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.3} />
+              <XAxis dataKey="month" stroke="#9CA3AF" tick={{ fontSize: 11 }} />
+              <YAxis stroke="#9CA3AF" tick={{ fontSize: 11 }} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
+              <Tooltip {...tooltipStyle} formatter={(v) => formatCurrency(v)} />
+              <Area type="monotone" dataKey="income"   stroke="#10B981" strokeWidth={2} fill="url(#incG)" />
+              <Area type="monotone" dataKey="expenses" stroke="#EF4444" strokeWidth={2} fill="url(#expG)" />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
+        </ChartCard>
 
-      </motion.div>
-
-      {/* CATEGORY PIE */}
-
-      <motion.div 
-          className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 hover:bg-white/[0.05] transition-all duration-300"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-        >
-          <h3 className="text-lg font-semibold text-white mb-4">
-            Spending by Category
-          </h3>
-
+        {/* Spending by Category — pie */}
+        <ChartCard title="Spending by Category" loading={categoryLoading}>
           <ResponsiveContainer width="100%" height={300}>
             <RePieChart>
-
               <Pie
-                data={categoryBreakdown?.categories || []}
+                data={categories}
                 dataKey="amount"
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={90}
+                outerRadius={95}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                labelLine={false}
               >
-                {(categoryBreakdown?.categories || []).map(
-                  (entry, index) => (
-                    <Cell
-                      key={index}
-                      fill={
-                        entry.color ||
-                        COLORS[index % COLORS.length]
-                      }
-                    />
-                  )
-                )}
+                {categories.map((entry, i) => (
+                  <Cell key={i} fill={entry.color || CHART_COLORS[i % CHART_COLORS.length]} />
+                ))}
               </Pie>
-
-              <Tooltip />
-
+              <Tooltip {...tooltipStyle} formatter={(v) => formatCurrency(v)} />
             </RePieChart>
           </ResponsiveContainer>
-        </motion.div>
+        </ChartCard>
 
-        {/* TOP CATEGORIES */}
-
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-
-          <h3 className="text-lg font-semibold text-white mb-4">
-            Top Categories
-          </h3>
-
+        {/* Top Categories — bar */}
+        <ChartCard title="Top Spending Categories" loading={topLoading}>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={topCategories?.categories || []}>
-
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#374151"
-              />
-
-              <XAxis
-                dataKey="name"
-                stroke="#9CA3AF"
-              />
-
-              <YAxis stroke="#9CA3AF" />
-
-              <Tooltip />
-
-              <Bar
-                dataKey="amount"
-                fill="#6366f1"
-              />
-
+            <BarChart data={topCats} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.3} />
+              <XAxis dataKey="name" stroke="#9CA3AF" tick={{ fontSize: 11 }} />
+              <YAxis stroke="#9CA3AF" tick={{ fontSize: 11 }} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
+              <Tooltip {...tooltipStyle} formatter={(v) => formatCurrency(v)} />
+              <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+                {topCats.map((entry, i) => (
+                  <Cell key={i} fill={entry.color || CHART_COLORS[i % CHART_COLORS.length]} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </ChartCard>
 
-        {/* WALLET USAGE */}
-
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-
-          <h3 className="text-lg font-semibold text-white mb-4">
-            Wallet Usage
-          </h3>
-
+        {/* Wallet Usage — grouped bar */}
+        <ChartCard
+          title="Wallet Usage"
+          loading={walletLoading}
+          legend={[
+            { color: '#10B981', label: 'Income' },
+            { color: '#EF4444', label: 'Expenses' },
+          ]}
+        >
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={walletUsage?.walletStats || []}>
-
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#374151"
-              />
-
-              <XAxis
-                dataKey="name"
-                stroke="#9CA3AF"
-              />
-
-              <YAxis stroke="#9CA3AF" />
-
-              <Tooltip />
-
-              <Bar
-                dataKey="income"
-                fill="#10B981"
-              />
-
-              <Bar
-                dataKey="expenses"
-                fill="#EF4444"
-              />
-
+            <BarChart data={wallets} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.3} />
+              <XAxis dataKey="name" stroke="#9CA3AF" tick={{ fontSize: 11 }} />
+              <YAxis stroke="#9CA3AF" tick={{ fontSize: 11 }} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
+              <Tooltip {...tooltipStyle} formatter={(v) => formatCurrency(v)} />
+              <Bar dataKey="income"   fill="#10B981" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="expenses" fill="#EF4444" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </ChartCard>
 
-        {/* SAVINGS GROWTH */}
-
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-
-          <h3 className="text-lg font-semibold text-white mb-4">
-            Savings Growth
-          </h3>
-
+        {/* Savings Growth — line, full width */}
+        <ChartCard
+          title="Savings Growth"
+          span2
+          loading={savingsLoading}
+          legend={[
+            { color: '#6366f1', label: 'Savings' },
+            { color: '#10B981', label: 'Cumulative' },
+          ]}
+        >
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={savingsGrowth?.growth || []}>
-
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#374151"
-              />
-
-              <XAxis
-                dataKey="month"
-                stroke="#9CA3AF"
-              />
-
-              <YAxis stroke="#9CA3AF" />
-
-              <Tooltip />
-
-              <Line
-                type="monotone"
-                dataKey="savings"
-                stroke="#6366f1"
-                strokeWidth={2}
-              />
-
-              <Line
-                type="monotone"
-                dataKey="cumulativeSavings"
-                stroke="#10B981"
-                strokeWidth={2}
-              />
-
+            <LineChart data={growth} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.3} />
+              <XAxis dataKey="month" stroke="#9CA3AF" tick={{ fontSize: 11 }} />
+              <YAxis stroke="#9CA3AF" tick={{ fontSize: 11 }} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
+              <Tooltip {...tooltipStyle} formatter={(v) => formatCurrency(v)} />
+              <Line type="monotone" dataKey="savings"           stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="cumulativeSavings" stroke="#10B981" strokeWidth={2} dot={{ r: 3 }} strokeDasharray="4 2" />
             </LineChart>
           </ResponsiveContainer>
-
-        </div>
+        </ChartCard>
 
       </div>
+    </motion.div>
+  )
+}
 
+// ─── sub-components ──────────────────────────────────────────────────────────
+
+function SummaryCard({ label, value, icon, color, glow }) {
+  return (
+    <motion.div
+      className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 hover:bg-white/[0.05] transition-all"
+      whileHover={{ scale: 1.03, boxShadow: `0 10px 40px ${glow}` }}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm text-gray-400">{label}</p>
+        {icon}
+      </div>
+      <p className={`text-2xl font-bold mt-2 ${color}`}>{value}</p>
+    </motion.div>
+  )
+}
+
+function ChartCard({ title, children, loading, span2, legend }) {
+  return (
+    <motion.div
+      className={`rounded-2xl border border-white/10 bg-white/[0.03] p-6 hover:bg-white/[0.05] transition-all ${span2 ? 'lg:col-span-2' : ''}`}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        {legend && (
+          <div className="flex items-center gap-3">
+            {legend.map((l) => (
+              <div key={l.label} className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: l.color }} />
+                <span className="text-xs text-gray-400">{l.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {loading ? <ChartSkeleton /> : children}
     </motion.div>
   )
 }
