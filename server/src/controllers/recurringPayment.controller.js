@@ -6,6 +6,7 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { AppError } from '../middleware/error.middleware.js'
 import activityService from '../services/activity.service.js'
 import { emitRecurringDue } from '../sockets/socketEmitter.js'
+import dayjs from 'dayjs'
 
 // Helper: calculate next due date based on frequency
 function calculateNextDueDate(currentDate, frequency) {
@@ -175,54 +176,94 @@ export const pauseResumeRecurringPayment = asyncHandler(async (req, res) => {
 
 export const markAsPaid = asyncHandler(async (req, res) => {
   const { id } = req.params
+  const session = await mongoose.startSession()
+  session.startTransaction()
 
-  const recurringPayment = await RecurringPayment.findOne({ _id: id, userId: req.user.id })
-  if (!recurringPayment) {
-    throw new AppError('Recurring payment not found', 404)
-  }
+  try {
+    const recurringPayment = await RecurringPayment.findOne({ _id: id, userId: req.user.id }).session(session)
+    if (!recurringPayment) {
+      throw new AppError('Recurring payment not found', 404)
+    }
 
-  // Create transaction
-  const transaction = await Transaction.create({
-    userId: req.user.id,
-    wallet: recurringPayment.wallet,
-    category: recurringPayment.category,
-    amount: recurringPayment.amount,
-    type: recurringPayment.type,
-    description: `${recurringPayment.name} (Recurring)`,
-    date: new Date()
-  })
+    if (!recurringPayment.isActive) {
+      throw new AppError('Recurring payment is paused', 400)
+    }
 
-  // Update wallet balance
-  const wallet = await Wallet.findById(recurringPayment.wallet)
-  if (wallet) {
+    const now = dayjs()
+    const nextDue = dayjs(recurringPayment.nextDueDate)
+    
+    if (nextDue.isAfter(now, 'day')) {
+      throw new AppError('Payment is not due yet', 400)
+    }
+
+    if (recurringPayment.lastProcessed) {
+      const lastProcessed = dayjs(recurringPayment.lastProcessed)
+      const nextDueAfterLastProcessed = dayjs(recurringPayment.lastProcessed).add(
+        recurringPayment.frequency === 'daily' ? 1 :
+        recurringPayment.frequency === 'weekly' ? 7 :
+        recurringPayment.frequency === 'monthly' ? 1 : 12,
+        recurringPayment.frequency === 'monthly' ? 'month' : recurringPayment.frequency === 'yearly' ? 'year' : 'day'
+      )
+      
+      if (lastProcessed.isSame(now, 'day') || lastProcessed.isAfter(nextDue.subtract(1, 'day'))) {
+        throw new AppError('Payment has already been processed for this cycle', 400)
+      }
+    }
+
+    const wallet = await Wallet.findById(recurringPayment.wallet).session(session)
+    if (!wallet) {
+      throw new AppError('Wallet not found', 404)
+    }
+
+    if (wallet.userId.toString() !== req.user.id) {
+      throw new AppError('Wallet access denied', 403)
+    }
+
+    const transaction = await Transaction.create([{
+      userId: req.user.id,
+      wallet: recurringPayment.wallet,
+      category: recurringPayment.category,
+      amount: recurringPayment.amount,
+      type: recurringPayment.type,
+      notes: `${recurringPayment.name} (Recurring)`,
+      date: new Date(),
+      isRecurring: true,
+      recurringId: recurringPayment._id
+    }], { session })
+
     if (recurringPayment.type === 'income') {
       wallet.balance += recurringPayment.amount
     } else {
       wallet.balance -= recurringPayment.amount
     }
-    await wallet.save()
+    await wallet.save({ session })
+
+    recurringPayment.lastProcessed = new Date()
+    recurringPayment.nextDueDate = calculateNextDueDate(new Date(), recurringPayment.frequency)
+    await recurringPayment.save({ session })
+
+    await activityService.logActivity(req.user.id, 'paid_recurring_payment', 'recurring', id, {
+      name: recurringPayment.name,
+      amount: recurringPayment.amount
+    })
+
+    await session.commitTransaction()
+
+    const populated = await RecurringPayment.findById(id)
+      .populate('category', 'name color icon')
+      .populate('wallet', 'name type')
+
+    res.json({
+      success: true,
+      message: 'Payment marked as paid and transaction created',
+      data: { recurringPayment: populated, transaction: transaction[0] }
+    })
+  } catch (error) {
+    await session.abortTransaction()
+    throw error
+  } finally {
+    session.endSession()
   }
-
-  // Update recurring payment
-  recurringPayment.lastProcessed = new Date()
-  recurringPayment.nextDueDate = calculateNextDueDate(new Date(), recurringPayment.frequency)
-  await recurringPayment.save()
-
-  // Log activity
-  await activityService.logActivity(req.user.id, 'paid_recurring_payment', 'recurringPayment', id, {
-    name: recurringPayment.name,
-    amount: recurringPayment.amount
-  })
-
-  const populated = await RecurringPayment.findById(id)
-    .populate('category', 'name color icon')
-    .populate('wallet', 'name type')
-
-  res.json({
-    success: true,
-    message: 'Payment marked as paid and transaction created',
-    data: { recurringPayment: populated, transaction }
-  })
 })
 
 export const skipOccurrence = asyncHandler(async (req, res) => {

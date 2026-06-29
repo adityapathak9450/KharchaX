@@ -1,7 +1,9 @@
 import RecurringPayment from '../models/RecurringPayment.model.js'
 import Transaction from '../models/Transaction.model.js'
 import Wallet from '../models/Wallet.model.js'
+import mongoose from 'mongoose'
 import { emitRecurringDue } from '../sockets/socketEmitter.js'
+import dayjs from 'dayjs'
 
 // Helper: calculate next due date based on frequency
 function calculateNextDueDate(currentDate, frequency) {
@@ -29,12 +31,11 @@ function calculateNextDueDate(currentDate, frequency) {
 export async function processRecurringPayments() {
   console.log('[Cron] Processing recurring payments...')
   
-  const now = new Date()
-  const startOfDay = new Date(now.setHours(0, 0, 0, 0))
-  const endOfDay = new Date(now.setHours(23, 59, 59, 999))
+  const now = dayjs()
+  const startOfDay = now.startOf('day').toDate()
+  const endOfDay = now.endOf('day').toDate()
 
   try {
-    // Find payments due today
     const duePayments = await RecurringPayment.find({
       isActive: true,
       nextDueDate: { $gte: startOfDay, $lte: endOfDay }
@@ -44,35 +45,50 @@ export async function processRecurringPayments() {
     console.log(`[Cron] Found ${duePayments.length} payments due today`)
 
     for (const payment of duePayments) {
+      const session = await mongoose.startSession()
+      session.startTransaction()
+
       try {
-        // Create transaction
-        const transaction = await Transaction.create({
+        if (payment.lastProcessed) {
+          const lastProcessed = dayjs(payment.lastProcessed)
+          if (lastProcessed.isSame(now, 'day')) {
+            console.log(`[Cron] Skipping ${payment.name} - already processed today`)
+            await session.abortTransaction()
+            session.endSession()
+            continue
+          }
+        }
+
+        const wallet = await Wallet.findById(payment.wallet._id).session(session)
+        if (!wallet) {
+          throw new Error('Wallet not found')
+        }
+
+        const transaction = await Transaction.create([{
           userId: payment.userId,
           wallet: payment.wallet._id,
           category: payment.category._id,
           amount: payment.amount,
           type: payment.type,
-          description: `${payment.name} (Auto-recurring)`,
-          date: new Date()
-        })
+          notes: `${payment.name} (Auto-recurring)`,
+          date: new Date(),
+          isRecurring: true,
+          recurringId: payment._id
+        }], { session })
 
-        // Update wallet balance
-        const wallet = await Wallet.findById(payment.wallet._id)
-        if (wallet) {
-          if (payment.type === 'income') {
-            wallet.balance += payment.amount
-          } else {
-            wallet.balance -= payment.amount
-          }
-          await wallet.save()
+        if (payment.type === 'income') {
+          wallet.balance += payment.amount
+        } else {
+          wallet.balance -= payment.amount
         }
+        await wallet.save({ session })
 
-        // Update recurring payment
         payment.lastProcessed = new Date()
         payment.nextDueDate = calculateNextDueDate(new Date(), payment.frequency)
-        await payment.save()
+        await payment.save({ session })
 
-        // Emit socket event for real-time notification
+        await session.commitTransaction()
+
         emitRecurringDue(payment.userId.toString(), {
           paymentId: payment._id,
           name: payment.name,
@@ -83,7 +99,10 @@ export async function processRecurringPayments() {
 
         console.log(`[Cron] Processed payment: ${payment.name} for user ${payment.userId}`)
       } catch (error) {
+        await session.abortTransaction()
         console.error(`[Cron] Error processing payment ${payment._id}:`, error.message)
+      } finally {
+        session.endSession()
       }
     }
 

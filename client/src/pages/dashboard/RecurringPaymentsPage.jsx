@@ -53,8 +53,11 @@ export default function RecurringPaymentsPage() {
     onSuccess: () => {
       toast.success('Payment marked as paid')
       queryClient.invalidateQueries({ queryKey: ['recurring-payments', filter, frequencyFilter] })
+      queryClient.invalidateQueries({ queryKey: ['recurring-payments-due-soon'] })
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
       queryClient.invalidateQueries({ queryKey: ['wallets'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['analytics'] })
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to mark as paid')
@@ -66,6 +69,7 @@ export default function RecurringPaymentsPage() {
     onSuccess: () => {
       toast.success('Occurrence skipped')
       queryClient.invalidateQueries({ queryKey: ['recurring-payments', filter, frequencyFilter] })
+      queryClient.invalidateQueries({ queryKey: ['recurring-payments-due-soon'] })
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to skip occurrence')
@@ -119,6 +123,11 @@ export default function RecurringPaymentsPage() {
     if (window.confirm('Delete this recurring payment? This cannot be undone.')) {
       deleteMutation.mutate(id)
     }
+  }
+
+  const handleEdit = (payment) => {
+    // TODO: Implement edit functionality
+    console.log('Edit payment:', payment)
   }
 
   return (
@@ -250,6 +259,7 @@ export default function RecurringPaymentsPage() {
               onMarkAsPaid={handleMarkAsPaid}
               onSkip={handleSkip}
               onDelete={handleDelete}
+              onEdit={handleEdit}
             />
           ))}
         </div>
