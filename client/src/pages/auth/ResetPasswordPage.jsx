@@ -64,8 +64,8 @@ export default function ResetPasswordPage() {
     return (
       <AuthShell>
         <div className="mx-auto max-w-md text-center">
-          <p className="text-gray-400">This reset link is invalid.</p>
-          <Link to="/forgot-password" className="mt-6 inline-block text-sm font-medium text-indigo-400">
+          <p className="text-muted">This reset link is invalid.</p>
+          <Link to="/forgot-password" className="mt-6 inline-block text-sm font-medium text-primary">
             Request a new link
           </Link>
         </div>
@@ -80,13 +80,13 @@ export default function ResetPasswordPage() {
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border border-white/10 bg-white/5 px-6 py-10"
+            className="rounded-2xl border border-border bg-surface shadow-sm px-6 py-10"
           >
-            <h1 className="text-xl font-semibold text-white">Password updated</h1>
-            <p className="mt-2 text-sm text-gray-400">
-              Redirecting to sign in in <span className="font-mono text-indigo-300">{countdown}</span>s…
+            <h1 className="text-xl font-semibold text-foreground">Password updated</h1>
+            <p className="mt-2 text-sm text-muted">
+              Redirecting to sign in in <span className="font-mono text-primary/80">{countdown}</span>s…
             </p>
-            <Link to="/login" className="mt-6 inline-block text-sm font-medium text-indigo-400 hover:text-indigo-300">
+            <Link to="/login" className="mt-6 inline-block text-sm font-medium text-primary hover:text-primary/80">
               Go to login now
             </Link>
           </motion.div>
@@ -98,8 +98,8 @@ export default function ResetPasswordPage() {
   return (
     <AuthShell>
       <div className="mx-auto w-full max-w-md">
-        <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Set new password</h1>
-        <p className="mt-2 text-sm text-gray-400">Choose a strong password for your account.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Set new password</h1>
+        <p className="mt-2 text-sm text-muted">Choose a strong password for your account.</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-10 space-y-5">
           <div>
@@ -114,7 +114,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowPw((v) => !v)}
-                  className="rounded-lg p-1.5 text-gray-400 hover:bg-white/10 hover:text-white"
+                  className="rounded-lg p-1.5 text-muted hover:bg-hover hover:text-foreground"
                   aria-label="Toggle password"
                 >
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -136,7 +136,7 @@ export default function ResetPasswordPage() {
               <button
                 type="button"
                 onClick={() => setShowPw2((v) => !v)}
-                className="rounded-lg p-1.5 text-gray-400 hover:bg-white/10 hover:text-white"
+                className="rounded-lg p-1.5 text-muted hover:bg-hover hover:text-foreground"
                 aria-label="Toggle password"
               >
                 {showPw2 ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -147,7 +147,7 @@ export default function ResetPasswordPage() {
             type="submit"
             disabled={isSubmitting}
             whileTap={{ scale: 0.98 }}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
+            className="btn-primary w-full py-3 text-sm gap-2 disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 disabled:cursor-not-allowed disabled:pointer-events-none"
           >
             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             Update password

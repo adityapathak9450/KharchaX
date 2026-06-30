@@ -40,22 +40,22 @@ export default function ForgotPasswordPage() {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-            className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/20 to-violet-600/10"
+            className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl border border-border bg-gradient-to-br from-primary/20 to-violet-600/10"
           >
-            <CheckCircle2 className="h-12 w-12 text-indigo-400" strokeWidth={1.5} />
+            <CheckCircle2 className="h-12 w-12 text-primary" strokeWidth={1.5} />
           </motion.div>
-          <h1 className="mt-8 text-2xl font-semibold text-white">Check your email</h1>
-          <p className="mt-3 text-sm leading-relaxed text-gray-400">
+          <h1 className="mt-8 text-2xl font-semibold text-foreground">Check your email</h1>
+          <p className="mt-3 text-sm leading-relaxed text-muted">
             If an account exists for that address, we&apos;ve sent a reset link. It may take a minute to arrive.
           </p>
           <div className="mt-10 flex justify-center">
-            <div className="rounded-full border border-white/10 bg-white/5 p-6">
-              <Mail className="h-10 w-10 text-indigo-400/90" strokeWidth={1.25} />
+            <div className="rounded-full border border-border bg-surface shadow-sm p-6">
+              <Mail className="h-10 w-10 text-primary/90" strokeWidth={1.25} />
             </div>
           </div>
           <Link
             to="/login"
-            className="mt-12 inline-block text-sm font-medium text-indigo-400 transition-colors hover:text-indigo-300"
+            className="mt-12 inline-block text-sm font-medium text-primary transition-colors hover:text-primary/80"
           >
             ← Back to login
           </Link>
@@ -67,8 +67,8 @@ export default function ForgotPasswordPage() {
   return (
     <AuthShell>
       <div className="mx-auto w-full max-w-md">
-        <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Forgot password</h1>
-        <p className="mt-2 text-sm text-gray-400">We&apos;ll email you a link to reset your password.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Forgot password</h1>
+        <p className="mt-2 text-sm text-muted">We&apos;ll email you a link to reset your password.</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-10 space-y-5">
           <FloatingField
@@ -83,14 +83,14 @@ export default function ForgotPasswordPage() {
             type="submit"
             disabled={isSubmitting}
             whileTap={{ scale: 0.98 }}
-            className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-medium text-white transition-all hover:bg-indigo-700 disabled:opacity-60"
+            className="btn-primary w-full py-3 text-sm disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 disabled:cursor-not-allowed disabled:pointer-events-none"
           >
             {isSubmitting ? 'Sending…' : 'Send reset link'}
           </motion.button>
         </form>
 
-        <p className="mt-10 text-center text-sm text-gray-400">
-          <Link to="/login" className="font-medium text-indigo-400 hover:text-indigo-300">
+        <p className="mt-10 text-center text-sm text-muted">
+          <Link to="/login" className="font-medium text-primary hover:text-primary/80">
             Back to login
           </Link>
         </p>

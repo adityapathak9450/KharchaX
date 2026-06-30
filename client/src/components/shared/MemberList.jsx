@@ -3,8 +3,8 @@ import { UserMinus, Crown, Shield, Eye } from 'lucide-react'
 export function MemberList({ members, onRemoveMember, isOwner }) {
   if (!members || members.length === 0) {
     return (
-      <div className="p-5 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-        <p className="text-sm text-gray-500">No members yet</p>
+      <div className="p-5 rounded-xl card">
+        <p className="text-sm text-muted">No members yet</p>
       </div>
     )
   }
@@ -16,7 +16,7 @@ export function MemberList({ members, onRemoveMember, isOwner }) {
       case 'editor':
         return <Shield className="w-4 h-4 text-blue-400" />
       default:
-        return <Eye className="w-4 h-4 text-gray-400" />
+        return <Eye className="w-4 h-4 text-muted" />
     }
   }
 
@@ -40,18 +40,18 @@ export function MemberList({ members, onRemoveMember, isOwner }) {
         return (
           <div
             key={memberId}
-            className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] transition-all"
+            className="flex items-center justify-between p-4 rounded-xl bg-surface border border-border shadow-sm hover:bg-hover transition-all"
           >
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium text-lg">
+              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-medium text-lg">
                 {member.userId?.name?.charAt(0).toUpperCase() || '?'}
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm font-medium text-white">{member.userId?.name || 'Unknown'}</p>
+                  <p className="text-sm font-medium text-foreground">{member.userId?.name || 'Unknown'}</p>
                   {getRoleIcon(member.role)}
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted">
                   {getRoleLabel(member.role)} • Contributed ₹{(member.totalContributed || 0).toLocaleString('en-IN')}
                 </p>
               </div>
@@ -59,7 +59,7 @@ export function MemberList({ members, onRemoveMember, isOwner }) {
             {canRemove && (
               <button
                 onClick={() => onRemoveMember(memberId)}
-                className="p-2 rounded-lg hover:bg-red-500/10 text-gray-500 hover:text-red-400 transition-all"
+                className="p-2 rounded-lg hover:bg-red-500/10 text-muted hover:text-red-400 transition-all"
                 title="Remove member"
               >
                 <UserMinus className="w-4 h-4" />

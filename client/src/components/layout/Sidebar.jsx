@@ -61,19 +61,19 @@ const Sidebar = ({ isOpen, onClose }) => {
   };
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-[#0f0f0f] border-r border-white/[0.08]">
+    <div className="flex flex-col h-full sidebar-shell">
       {/* Logo */}
       <div className="p-6">
-        <h1 className="text-2xl font-bold text-indigo-400">KharchaX</h1>
+        <h1 className="text-2xl font-bold text-primary">KharchaX</h1>
       </div>
 
-      <div className="h-px bg-white/[0.08] mx-6" />
+      <div className="h-px bg-border mx-6" />
 
       {/* Nav */}
       <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
         {navGroups.map((group, i) => (
           <div key={i}>
-            <h3 className="text-xs text-gray-500 mb-2 px-3">{group.label}</h3>
+            <h3 className="text-xs text-muted mb-2 px-3">{group.label}</h3>
             <div className="space-y-1">
               {group.items.map((item) => (
                 <NavLink
@@ -81,11 +81,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                   to={item.path}
                  end={item.path === '/dashboard'}
                   onClick={onClose}
-                  className={({ isActive }) =>
-                    isActive
-                      ? 'flex items-center gap-3 px-3 py-2 text-sm border-l-2 border-indigo-500 bg-indigo-600/10 text-indigo-400'
-                      : 'flex items-center gap-3 px-3 py-2 text-sm border-l-2 border-transparent text-gray-400 hover:text-white hover:bg-white/5'
-                  }
+                  className={({ isActive }) => (isActive ? 'nav-item-active' : 'nav-item')}
                 >
                   <item.icon className="w-4 h-4" />
                   {item.label}
@@ -97,19 +93,19 @@ const Sidebar = ({ isOpen, onClose }) => {
       </nav>
 
       {/* User */}
-      <div className="p-4 border-t border-white/[0.08]">
+      <div className="p-4 border-t border-border">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white">
+          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground">
             {getUserInitials()}
           </div>
           <div>
-            <p className="text-sm text-white">{user?.name || 'User'}</p>
+            <p className="text-sm text-foreground">{user?.name || 'User'}</p>
           </div>
         </div>
 
         <button
           onClick={logout}
-          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-400 hover:text-red-400"
+          className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded-lg text-muted hover:text-red-400 hover:bg-hover transition-colors focus-ring"
         >
           <LogOut className="w-4 h-4" />
           Logout
@@ -124,7 +120,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         <>
           {/* Click outside */}
           <div
-            className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm"
+            className="fixed inset-0 z-30 bg-overlay/50 backdrop-blur-sm"
             onClick={onClose}
           />
 

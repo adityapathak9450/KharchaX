@@ -3,15 +3,14 @@ import { Link } from 'react-router-dom'
 import { VaultLogo } from './VaultLogo.jsx'
 
 const dotGridStyle = {
-  backgroundColor: '#030712',
-  backgroundImage: `radial-gradient(rgba(99, 102, 241, 0.12) 1px, transparent 1px)`,
+  backgroundImage: 'radial-gradient(rgb(var(--color-primary) / 0.12) 1px, transparent 1px)',
   backgroundSize: '24px 24px',
 }
 
 export function AuthShell({ children }) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gray-950 text-white" style={dotGridStyle}>
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-indigo-950/40 via-transparent to-gray-950" />
+    <div className="relative min-h-screen overflow-hidden bg-canvas text-foreground" style={dotGridStyle}>
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-canvas" />
       <div className="relative z-10 mx-auto flex min-h-screen max-w-lg flex-col px-4 py-8 sm:px-6">
         <header className="mb-10 flex shrink-0 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">

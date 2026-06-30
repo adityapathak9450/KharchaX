@@ -27,7 +27,7 @@ export function SettlementModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-overlay/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         onClick={onClose}
       >
         <motion.div
@@ -35,49 +35,49 @@ export function SettlementModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 8 }}
           transition={{ duration: 0.15 }}
-          className="w-full max-w-md bg-[#1a1a1a] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden"
+          className="w-full max-w-md dropdown-panel shadow-dropdown overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
-                <ArrowRightLeft className="w-4 h-4 text-indigo-400" />
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <ArrowRightLeft className="w-4 h-4 text-primary" />
               </div>
-              <h2 className="text-lg font-semibold text-white">Record Settlement</h2>
+              <h2 className="text-lg font-semibold text-foreground">Record Settlement</h2>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-white/10 text-gray-500 hover:text-white transition-all"
+              className="p-2 rounded-lg hover:bg-hover text-muted hover:text-foreground transition-all"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-300">
+            <div className="p-4 rounded-xl bg-surface border border-border shadow-sm text-sm text-muted">
               You pay{' '}
-              <span className="text-white font-semibold">{suggestion.to}</span>{' '}
+              <span className="text-foreground font-semibold">{suggestion.to}</span>{' '}
               <span className="text-green-400 font-semibold">
                 {formatCurrency(suggestion.amount)}
               </span>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-muted mb-2">
                 Pay From Your Wallet
               </label>
               <select
                 value={fromWallet}
                 onChange={(e) => setFromWallet(e.target.value)}
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white"
+                className="w-full px-4 py-2.5 input-field rounded-lg text-sm text-foreground"
                 required
               >
-                <option className="bg-gray-900 text-white" value="">
+                <option className="bg-surface text-foreground" value="">
                   Select wallet
                 </option>
                 {wallets.map((wallet) => (
                   <option
-                    className="bg-gray-900 text-white"
+                    className="bg-surface text-foreground"
                     key={wallet._id}
                     value={wallet._id}
                   >
@@ -91,14 +91,14 @@ export function SettlementModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm"
+                className="flex-1 px-4 py-2.5 rounded-lg bg-surface border border-border shadow-sm text-foreground text-sm"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isLoading || !fromWallet}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm disabled:opacity-50"
+                className="btn-primary flex-1 px-4 py-2.5 text-sm disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 disabled:cursor-not-allowed disabled:pointer-events-none"
               >
                 {isLoading ? 'Settling...' : 'Confirm Settlement'}
               </button>

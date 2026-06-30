@@ -17,8 +17,8 @@ export function RecentTransactions({ transactions }) {
   if (!transactions.length) {
     return (
       <div className="text-center py-8">
-        <div className="text-gray-500 mb-2">No transactions yet</div>
-        <p className="text-sm text-gray-600">Start adding transactions to see them here</p>
+        <div className="text-muted mb-2">No transactions yet</div>
+        <p className="text-sm text-muted">Start adding transactions to see them here</p>
       </div>
     )
   }
@@ -31,15 +31,15 @@ export function RecentTransactions({ transactions }) {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: index * 0.1 }}
-          className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors group"
+          className="flex items-center justify-between p-3 rounded-xl hover:bg-hover transition-colors group"
         >
           {/* Left side - Icon and details */}
           <div className="flex items-center gap-3">
             <div 
               className="flex items-center justify-center w-10 h-10 rounded-xl text-lg"
               style={{ 
-                backgroundColor: transaction.category?.color ? `${transaction.category.color}20` : '#37415120',
-                color: transaction.category?.color || '#9CA3AF'
+                backgroundColor: transaction.category?.color ? `${transaction.category.color}20` : 'rgb(var(--color-hover))',
+                color: transaction.category?.color || 'rgb(var(--color-muted))'
               }}
             >
               {categoryIcons[transaction.category?.name] || categoryIcons.transfer}
@@ -47,7 +47,7 @@ export function RecentTransactions({ transactions }) {
             
             <div>
               <div className="flex items-center gap-2">
-                <p className="font-medium text-white">
+                <p className="font-medium text-foreground">
                   {transaction.notes || transaction.category?.name || 'Transaction'}
                 </p>
                 {transaction.tags?.includes('transfer') && (
@@ -56,7 +56,7 @@ export function RecentTransactions({ transactions }) {
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-400">
+              <div className="flex items-center gap-2 text-xs text-muted">
                 <span>{transaction.category?.name || 'Uncategorized'}</span>
                 <span>•</span>
                 <span>{formatRelativeTime(transaction.date)}</span>
@@ -68,19 +68,19 @@ export function RecentTransactions({ transactions }) {
           <div className="flex items-center gap-3">
             <div className="text-right">
               <p className={`font-semibold ${
-                transaction.type === 'income' ? 'text-green-400' : 'text-white'
+                transaction.type === 'income' ? 'text-green-400' : 'text-foreground'
               }`}>
                 {transaction.type === 'income' && '+'}
                 {formatCurrency(transaction.amount)}
               </p>
-              <div className="flex items-center gap-1 justify-end text-xs text-gray-500">
+              <div className="flex items-center gap-1 justify-end text-xs text-muted">
                 {transaction.wallet?.name || 'Wallet'}
                 {transaction.type === 'income' && <ArrowUpRight className="h-3 w-3 text-green-400" />}
                 {transaction.type === 'expense' && <ArrowDownRight className="h-3 w-3 text-red-400" />}
               </div>
             </div>
             
-            <button className="p-1 rounded-lg text-gray-400 opacity-0 group-hover:opacity-100 hover:text-white hover:bg-white/10 transition-all">
+            <button className="p-1 rounded-lg text-muted opacity-0 group-hover:opacity-100 hover:text-foreground hover:bg-hover transition-all">
               <MoreHorizontal className="h-4 w-4" />
             </button>
           </div>

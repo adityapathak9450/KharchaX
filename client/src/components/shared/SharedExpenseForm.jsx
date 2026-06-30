@@ -99,7 +99,7 @@ export function SharedExpenseForm({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-overlay/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         onClick={onClose}
       >
         <motion.div
@@ -107,19 +107,19 @@ export function SharedExpenseForm({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 8 }}
           transition={{ duration: 0.15 }}
-          className="w-full max-w-lg bg-[#1a1a1a] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+          className="w-full max-w-lg dropdown-panel shadow-dropdown overflow-hidden max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
                 <DollarSign className="w-4 h-4 text-green-400" />
               </div>
-              <h2 className="text-lg font-semibold text-white">Add Shared Expense</h2>
+              <h2 className="text-lg font-semibold text-foreground">Add Shared Expense</h2>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-white/10 text-gray-500 hover:text-white transition-all"
+              className="p-2 rounded-lg hover:bg-hover text-muted hover:text-foreground transition-all"
             >
               <X className="w-4 h-4" />
             </button>
@@ -127,7 +127,7 @@ export function SharedExpenseForm({
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Amount</label>
+              <label className="block text-sm font-medium text-muted mb-2">Amount</label>
               <input
                 type="number"
                 value={formData.amount}
@@ -137,13 +137,13 @@ export function SharedExpenseForm({
                 placeholder="0.00"
                 step="0.01"
                 min="0.01"
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white"
+                className="w-full px-4 py-2.5 input-field rounded-lg text-sm text-foreground"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-muted mb-2">
                 Description
               </label>
               <input
@@ -153,13 +153,13 @@ export function SharedExpenseForm({
                   setFormData({ ...formData, description: e.target.value })
                 }
                 placeholder="Dinner, Hotel, Cab..."
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white"
+                className="w-full px-4 py-2.5 input-field rounded-lg text-sm text-foreground"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Paid By</label>
+              <label className="block text-sm font-medium text-muted mb-2">Paid By</label>
               <select
                 value={formData.paidBy}
                 onChange={(e) =>
@@ -169,17 +169,17 @@ export function SharedExpenseForm({
                     paidFromWallet: '',
                   })
                 }
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white"
+                className="w-full px-4 py-2.5 input-field rounded-lg text-sm text-foreground"
                 required
               >
-                <option className="bg-gray-900 text-white" value="">
+                <option className="bg-surface text-foreground" value="">
                   Select who paid
                 </option>
                 {members.map((member) => {
                   const memberId = member.userId?._id || member.userId
                   return (
                     <option
-                      className="bg-gray-900 text-white"
+                      className="bg-surface text-foreground"
                       key={memberId}
                       value={memberId}
                     >
@@ -192,7 +192,7 @@ export function SharedExpenseForm({
 
             {isCurrentUserPayer ? (
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-muted mb-2">
                   Paid From Wallet
                 </label>
                 {payerWallets.length === 0 ? (
@@ -205,15 +205,15 @@ export function SharedExpenseForm({
                     onChange={(e) =>
                       setFormData({ ...formData, paidFromWallet: e.target.value })
                     }
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white"
+                    className="w-full px-4 py-2.5 input-field rounded-lg text-sm text-foreground"
                     required
                   >
-                    <option className="bg-gray-900 text-white" value="">
+                    <option className="bg-surface text-foreground" value="">
                       Select wallet
                     </option>
                     {payerWallets.map((wallet) => (
                       <option
-                        className="bg-gray-900 text-white"
+                        className="bg-surface text-foreground"
                         key={wallet._id}
                         value={wallet._id}
                       >
@@ -224,13 +224,13 @@ export function SharedExpenseForm({
                 )}
               </div>
             ) : (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted">
                 Wallet balance is deducted only when you are the payer.
               </p>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-muted mb-2">
                 Split Type
               </label>
               <select
@@ -238,22 +238,22 @@ export function SharedExpenseForm({
                 onChange={(e) =>
                   setFormData({ ...formData, splitType: e.target.value })
                 }
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white"
+                className="w-full px-4 py-2.5 input-field rounded-lg text-sm text-foreground"
               >
-                <option className="bg-gray-900 text-white" value="equal">
+                <option className="bg-surface text-foreground" value="equal">
                   Equal split
                 </option>
-                <option className="bg-gray-900 text-white" value="percentage">
+                <option className="bg-surface text-foreground" value="percentage">
                   Percentage split
                 </option>
-                <option className="bg-gray-900 text-white" value="exact">
+                <option className="bg-surface text-foreground" value="exact">
                   Exact amounts
                 </option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-muted mb-2">
                 Split Between
               </label>
               <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -266,8 +266,8 @@ export function SharedExpenseForm({
                       <label
                         className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
                           isSelected
-                            ? 'bg-indigo-500/10 border border-indigo-500/30'
-                            : 'bg-white/5 border border-white/10'
+                            ? 'bg-primary/10 border border-primary/30'
+                            : 'bg-surface border border-border shadow-sm'
                         }`}
                       >
                         <input
@@ -275,7 +275,7 @@ export function SharedExpenseForm({
                           checked={isSelected}
                           onChange={() => toggleMember(memberId)}
                         />
-                        <span className="text-sm text-white">
+                        <span className="text-sm text-foreground">
                           {member.userId?.name || 'Unknown'}
                         </span>
                       </label>
@@ -291,7 +291,7 @@ export function SharedExpenseForm({
                           onChange={(e) =>
                             updateCustomSplit(memberId, 'percentage', e.target.value)
                           }
-                          className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white"
+                          className="w-full px-3 py-2 input-field rounded-lg text-sm text-foreground"
                         />
                       )}
 
@@ -305,7 +305,7 @@ export function SharedExpenseForm({
                           onChange={(e) =>
                             updateCustomSplit(memberId, 'amount', e.target.value)
                           }
-                          className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white"
+                          className="w-full px-3 py-2 input-field rounded-lg text-sm text-foreground"
                         />
                       )}
                     </div>
@@ -318,7 +318,7 @@ export function SharedExpenseForm({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm"
+                className="flex-1 px-4 py-2.5 rounded-lg bg-surface border border-border shadow-sm text-foreground text-sm"
               >
                 Cancel
               </button>
@@ -328,7 +328,7 @@ export function SharedExpenseForm({
                   isLoading ||
                   (isCurrentUserPayer && (!formData.paidFromWallet || payerWallets.length === 0))
                 }
-                className="flex-1 px-4 py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm disabled:opacity-50"
+                className="btn-primary flex-1 px-4 py-2.5 text-sm disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 disabled:cursor-not-allowed disabled:pointer-events-none"
               >
                 {isLoading ? 'Saving...' : 'Add Expense'}
               </button>

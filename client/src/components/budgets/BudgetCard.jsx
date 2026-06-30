@@ -68,7 +68,7 @@ export function BudgetCard({ budget, onDelete, onEdit }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.02 }}
-      className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.03] to-white/[0.01] p-6 backdrop-blur-sm transition-all hover:border-white/20"
+      className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-surface/50 to-surface/25 p-6 backdrop-blur-sm transition-all hover:border-border/50"
     >
       {/* Status badge */}
       {isExceeded && (
@@ -98,8 +98,8 @@ export function BudgetCard({ budget, onDelete, onEdit }) {
             <IconComponent className="h-5 w-5" />
           </div>
           <div>
-            <h4 className="font-semibold text-white leading-tight">{budget.name}</h4>
-            <p className="text-xs text-gray-400">
+            <h4 className="font-semibold text-foreground leading-tight">{budget.name}</h4>
+            <p className="text-xs text-muted">
               {budget.category?.name || 'Uncategorized'}
             </p>
           </div>
@@ -114,8 +114,8 @@ export function BudgetCard({ budget, onDelete, onEdit }) {
             }}
             className={`p-1.5 rounded-lg transition-colors ${
               menuOpen
-                ? 'bg-white/15 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-white/10'
+                ? 'bg-surface text-foreground'
+                : 'text-muted hover:text-foreground hover:bg-hover'
             }`}
           >
             <MoreHorizontal className="h-4 w-4" />
@@ -128,7 +128,7 @@ export function BudgetCard({ budget, onDelete, onEdit }) {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.92, y: -4 }}
                 transition={{ duration: 0.12, ease: 'easeOut' }}
-                className="absolute right-0 top-8 z-30 w-40 bg-gray-800 border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+                className="absolute right-0 top-8 z-30 w-40 bg-elevated border border-border rounded-xl shadow-dropdown overflow-hidden"
               >
                 <button
                   onClick={(e) => {
@@ -136,19 +136,19 @@ export function BudgetCard({ budget, onDelete, onEdit }) {
                     setMenuOpen(false)
                     onEdit(budget)
                   }}
-                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-muted hover:text-foreground hover:bg-hover transition-colors"
                 >
-                  <Pencil className="h-3.5 w-3.5 text-indigo-400" />
+                  <Pencil className="h-3.5 w-3.5 text-primary" />
                   Edit Budget
                 </button>
-                <div className="h-px bg-white/10 mx-3" />
+                <div className="h-px bg-border mx-3" />
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
                     setMenuOpen(false)
                     onDelete(budget)
                   }}
-                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-gray-300 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 >
                   <Trash2 className="h-3.5 w-3.5 text-red-400" />
                   Delete Budget
@@ -162,7 +162,7 @@ export function BudgetCard({ budget, onDelete, onEdit }) {
       {/* Progress */}
       <div className="space-y-3 mb-4">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-400">Progress</span>
+          <span className="text-muted">Progress</span>
           <span
             className={`font-semibold ${
               isExceeded ? 'text-red-400' : shouldAlert ? 'text-yellow-400' : 'text-green-400'
@@ -173,7 +173,7 @@ export function BudgetCard({ budget, onDelete, onEdit }) {
         </div>
 
         <div className="relative">
-          <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-border rounded-full h-2 overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(utilizationPercent, 100)}%` }}
@@ -193,15 +193,15 @@ export function BudgetCard({ budget, onDelete, onEdit }) {
       {/* Amount Details */}
       <div className="space-y-2 mb-4">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-400">Spent</span>
-          <span className="text-white font-medium">{formatCurrency(budget.spent)}</span>
+          <span className="text-muted">Spent</span>
+          <span className="text-foreground font-medium">{formatCurrency(budget.spent)}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-400">Budget</span>
-          <span className="text-white font-medium">{formatCurrency(budget.amount)}</span>
+          <span className="text-muted">Budget</span>
+          <span className="text-foreground font-medium">{formatCurrency(budget.amount)}</span>
         </div>
-        <div className="flex items-center justify-between text-sm pt-2 border-t border-white/10">
-          <span className="text-gray-400">Remaining</span>
+        <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
+          <span className="text-muted">Remaining</span>
           <span className={`font-semibold ${remaining >= 0 ? 'text-green-400' : 'text-red-400'}`}>
             {remaining < 0 && '−'}
             {formatCurrency(Math.abs(remaining))}
@@ -211,7 +211,7 @@ export function BudgetCard({ budget, onDelete, onEdit }) {
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-white/10">
+      <div className="flex items-center justify-between text-xs text-muted pt-3 border-t border-border">
         <div className="flex items-center gap-1">
           <Calendar className="h-3 w-3" />
           <span>

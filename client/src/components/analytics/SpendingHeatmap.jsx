@@ -25,13 +25,13 @@ const SpendingHeatmap = ({ data }) => {
   
   // Map intensity to color
   const getColor = (amount) => {
-    if (amount === 0) return 'bg-white/5';
+    if (amount === 0) return 'bg-hover';
     const intensity = amount / maxAmount;
     
-    if (intensity < 0.25) return 'bg-indigo-900';
-    if (intensity < 0.5) return 'bg-indigo-700';
-    if (intensity < 0.75) return 'bg-indigo-500';
-    return 'bg-indigo-400';
+    if (intensity < 0.25) return 'bg-primary/40';
+    if (intensity < 0.5) return 'bg-primary/60';
+    if (intensity < 0.75) return 'bg-primary';
+    return 'bg-primary/80';
   };
 
   // Get amount for a specific date
@@ -93,7 +93,7 @@ const SpendingHeatmap = ({ data }) => {
             if (firstDay) {
               const month = new Date(firstDay).toLocaleString('default', { month: 'short' });
               return (
-                <div key={weekIndex} className="flex-1 text-xs text-gray-500">
+                <div key={weekIndex} className="flex-1 text-xs text-muted">
                   {month}
                 </div>
               );
@@ -108,7 +108,7 @@ const SpendingHeatmap = ({ data }) => {
         {/* Day labels */}
         <div className="flex flex-col gap-1 mr-2">
           {['M', 'W', 'F'].map((day, index) => (
-            <div key={index} className="h-3 w-4 flex items-center justify-center text-xs text-gray-500">
+            <div key={index} className="h-3 w-4 flex items-center justify-center text-xs text-muted">
               {day}
             </div>
           ))}
@@ -129,7 +129,7 @@ const SpendingHeatmap = ({ data }) => {
                 return (
                   <div
                     key={dayIndex}
-                    className={`w-3 h-3 rounded-sm cursor-pointer transition-all hover:ring-2 hover:ring-indigo-400 ${colorClass}`}
+                    className={`w-3 h-3 rounded-sm cursor-pointer transition-all hover:ring-2 hover:ring-primary ${colorClass}`}
                     onMouseEnter={(e) => handleMouseEnter(day, e)}
                     onMouseLeave={handleMouseLeave}
                   />
@@ -142,28 +142,28 @@ const SpendingHeatmap = ({ data }) => {
 
       {/* Legend */}
       <div className="flex items-center gap-2 mt-4 ml-8">
-        <span className="text-xs text-gray-500">Less</span>
+        <span className="text-xs text-muted">Less</span>
         <div className="flex gap-1">
-          <div className="w-3 h-3 rounded-sm bg-white/5" />
-          <div className="w-3 h-3 rounded-sm bg-indigo-900" />
-          <div className="w-3 h-3 rounded-sm bg-indigo-700" />
-          <div className="w-3 h-3 rounded-sm bg-indigo-500" />
-          <div className="w-3 h-3 rounded-sm bg-indigo-400" />
+          <div className="w-3 h-3 rounded-sm bg-hover" />
+          <div className="w-3 h-3 rounded-sm bg-primary/40" />
+          <div className="w-3 h-3 rounded-sm bg-primary/60" />
+          <div className="w-3 h-3 rounded-sm bg-primary" />
+          <div className="w-3 h-3 rounded-sm bg-primary/80" />
         </div>
-        <span className="text-xs text-gray-500">More</span>
+        <span className="text-xs text-muted">More</span>
       </div>
 
       {/* Tooltip */}
       {tooltip && (
         <div
-          className="fixed z-50 bg-[#262626] border border-white/10 rounded-lg px-3 py-2 text-sm pointer-events-none"
+          className="fixed z-50 bg-surface border border-border shadow-dropdown rounded-lg px-3 py-2 text-sm pointer-events-none"
           style={{
             left: `${tooltipPosition.x}px`,
             top: `${tooltipPosition.y}px`,
             transform: 'translate(-50%, -100%)',
           }}
         >
-          <div className="text-white font-medium">
+          <div className="text-foreground font-medium">
             {new Date(tooltip.date).toLocaleDateString('en-US', {
               weekday: 'short',
               month: 'short',
@@ -171,7 +171,7 @@ const SpendingHeatmap = ({ data }) => {
               year: 'numeric'
             })}
           </div>
-          <div className="text-gray-400">
+          <div className="text-muted">
             ₹{tooltip.amount.toLocaleString('en-IN')}
           </div>
         </div>

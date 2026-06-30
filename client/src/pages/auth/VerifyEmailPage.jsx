@@ -89,9 +89,9 @@ export default function VerifyEmailPage() {
   return (
     <AuthShell>
       <div className="mx-auto w-full max-w-md">
-        <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Verify your email</h1>
-        <p className="mt-2 text-sm text-gray-400">
-          We sent a 6-digit code to <span className="font-medium text-gray-200">{email}</span>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Verify your email</h1>
+        <p className="mt-2 text-sm text-muted">
+          We sent a 6-digit code to <span className="font-medium text-foreground/90">{email}</span>
         </p>
 
         <div className="mt-10 flex justify-center gap-2 sm:gap-3" onPaste={handlePaste}>
@@ -111,7 +111,7 @@ export default function VerifyEmailPage() {
                   inputsRef.current[i - 1]?.focus()
                 }
               }}
-              className="h-12 w-10 rounded-xl border border-white/10 bg-white/5 text-center text-lg font-semibold text-white outline-none transition-colors focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/40 sm:h-14 sm:w-12"
+              className="h-12 w-10 rounded-xl border border-border bg-surface shadow-sm text-center text-lg font-semibold text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-ring/40 sm:h-14 sm:w-12"
               aria-label={`Digit ${i + 1}`}
             />
           ))}
@@ -122,26 +122,26 @@ export default function VerifyEmailPage() {
           onClick={submit}
           disabled={submitting || code.length !== 6}
           whileTap={{ scale: 0.98 }}
-          className="mt-10 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-medium text-white transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-10 btn-primary w-full py-3 text-sm gap-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 disabled:cursor-not-allowed disabled:pointer-events-none"
         >
           {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           Verify
         </motion.button>
 
-        <p className="mt-8 text-center text-sm text-gray-400">
+        <p className="mt-8 text-center text-sm text-muted">
           Didn&apos;t receive it?{' '}
           <button
             type="button"
             disabled={cooldown > 0}
             onClick={resend}
-            className="font-medium text-indigo-400 transition-colors hover:text-indigo-300 disabled:cursor-not-allowed disabled:text-gray-500"
+            className="font-medium text-primary transition-colors hover:text-primary/80 disabled:cursor-not-allowed disabled:text-muted"
           >
             {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code'}
           </button>
         </p>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
-          <Link to="/login" className="text-gray-400 hover:text-white">
+        <p className="mt-6 text-center text-sm text-muted">
+          <Link to="/login" className="text-muted hover:text-foreground">
             Back to login
           </Link>
         </p>

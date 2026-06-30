@@ -95,8 +95,8 @@ export default function SharedWalletsPage() {
               <Users className="w-5 h-5 text-purple-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Shared Wallets</h1>
-              <p className="text-sm text-gray-400">
+              <h1 className="text-2xl font-bold text-foreground">Shared Wallets</h1>
+              <p className="text-sm text-muted">
                 {sharedWallets.length} shared wallet{sharedWallets.length !== 1 ? 's' : ''}
               </p>
             </div>
@@ -104,7 +104,7 @@ export default function SharedWalletsPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={handleCreateClick}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium transition-all"
+              className="btn-primary px-4 py-2 text-sm gap-2"
             >
               <Plus className="w-4 h-4" />
               <span>Create Shared Wallet</span>
@@ -116,27 +116,27 @@ export default function SharedWalletsPage() {
       {/* Search */}
       <div className="mb-6">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted" />
           <input
             type="text"
             placeholder="Search shared wallets..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all"
+            className="w-full pl-10 pr-4 py-2 input-field rounded-xl text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all"
           />
         </div>
       </div>
 
       {/* Join by code */}
-      <div className="mb-6 p-4 rounded-xl bg-white/5 border border-white/10">
+      <div className="mb-6 p-4 rounded-xl bg-surface border border-border shadow-sm">
         <div className="flex items-center gap-4">
           <div className="flex-1">
-            <label className="block text-xs text-gray-400 mb-1">Join with invite code</label>
+            <label className="block text-xs text-muted mb-1">Join with invite code</label>
             <div className="flex gap-2">
               <input
                 type="text"
                 placeholder="Enter invite code"
-                className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 uppercase"
+                className="flex-1 px-3 py-2 input-field rounded-lg text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/50 uppercase"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && e.target.value.trim()) {
                     handleJoin(e.target.value.trim())
@@ -147,7 +147,7 @@ export default function SharedWalletsPage() {
               <button
                 onClick={handleJoinClick}
                 disabled={joinSharedWalletMutation.isPending}
-                className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm hover:bg-white/20 transition-all disabled:opacity-50"
+                className="btn-secondary px-4 py-2 text-sm disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 disabled:cursor-not-allowed disabled:pointer-events-none"
               >
                 Join
               </button>
@@ -160,26 +160,26 @@ export default function SharedWalletsPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="p-6 rounded-xl bg-white/5 border border-white/10 animate-pulse">
-              <div className="h-4 bg-white/10 rounded w-3/4 mb-3" />
-              <div className="h-3 bg-white/10 rounded w-1/2 mb-4" />
-              <div className="h-8 bg-white/10 rounded w-full" />
+            <div key={i} className="card p-6">
+              <div className="h-4 bg-elevated rounded w-3/4 mb-3" />
+              <div className="h-3 bg-elevated rounded w-1/2 mb-4" />
+              <div className="h-8 bg-elevated rounded w-full" />
             </div>
           ))}
         </div>
       ) : filteredWallets.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-            <Users className="w-8 h-8 text-gray-600" />
+          <div className="w-16 h-16 rounded-2xl bg-hover flex items-center justify-center mb-4">
+            <Users className="w-8 h-8 text-muted" />
           </div>
-          <h3 className="text-lg font-medium text-white mb-1">No shared wallets</h3>
-          <p className="text-sm text-gray-500 mb-4">
+          <h3 className="text-lg font-medium text-foreground mb-1">No shared wallets</h3>
+          <p className="text-sm text-muted mb-4">
             {search ? 'No wallets match your search' : 'Create your first shared wallet to get started'}
           </p>
           {!search && (
             <button
               onClick={handleCreateClick}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium transition-all"
+              className="btn-primary px-4 py-2 text-sm gap-2"
             >
               <Plus className="w-4 h-4" />
               <span>Create Shared Wallet</span>

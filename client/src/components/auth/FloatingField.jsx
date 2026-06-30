@@ -15,13 +15,13 @@ export function FloatingField({
         type={type}
         autoComplete={autoComplete}
         placeholder=" "
-        className={`peer w-full rounded-xl border border-white/10 bg-white/5 px-4 pb-2.5 pt-6 text-sm text-white placeholder:text-transparent outline-none transition-colors focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/40 ${rightSlot ? 'pr-12' : ''}`}
+        className={`peer w-full rounded-xl input-field px-4 pb-2.5 pt-6 text-sm placeholder:text-transparent ${rightSlot ? 'pr-12' : ''}`}
         {...register}
         {...inputProps}
       />
       <label
         htmlFor={id}
-        className="pointer-events-none absolute left-4 top-2 origin-left text-xs text-gray-400 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:-translate-y-0 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:-translate-y-0 peer-focus:text-xs peer-focus:text-indigo-300"
+        className="pointer-events-none absolute left-4 top-2 origin-left text-xs text-muted transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:-translate-y-0 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:-translate-y-0 peer-focus:text-xs peer-focus:text-primary"
       >
         {label}
       </label>

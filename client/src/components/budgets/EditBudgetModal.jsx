@@ -9,10 +9,7 @@ import { z } from 'zod'
 import { apiClient } from '../../lib/apiClient.js'
 import { formatCurrency } from '../../utils/format.js'
 
-const colors = [
-  '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316',
-  '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4',
-]
+import { PALETTE_COLORS as colors, DEFAULT_ACCENT } from '../../lib/designTokens.js'
 
 const months = [
   { value: 1, label: 'January' }, { value: 2, label: 'February' },
@@ -30,7 +27,7 @@ const editBudgetSchema = z.object({
   month: z.number().min(1).max(12),
   year: z.number().min(1970).max(2100),
   alertAt: z.number().min(1).max(100),
-  color: z.string().default('#6366f1'),
+  color: z.string().default(DEFAULT_ACCENT),
 })
 
 export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
@@ -54,7 +51,7 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
       month: new Date().getMonth() + 1,
       year: currentYear,
       alertAt: 80,
-      color: '#6366f1',
+      color: DEFAULT_ACCENT,
     },
   })
 
@@ -68,7 +65,7 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
         month: budget.month,
         year: budget.year,
         alertAt: budget.alertAt ?? 80,
-        color: budget.color || '#6366f1',
+        color: budget.color || DEFAULT_ACCENT,
       })
     }
   }, [budget, reset])
@@ -101,7 +98,7 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+          className="absolute inset-0 bg-overlay/80 backdrop-blur-sm"
           onClick={onClose}
         />
 
@@ -111,7 +108,7 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="relative w-full max-w-2xl bg-gray-900 border border-white/10 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
+          className="relative w-full max-w-2xl bg-surface border border-border rounded-2xl shadow-dropdown max-h-[90vh] overflow-y-auto"
         >
           {/* Colored top accent matching budget color */}
           <div
@@ -120,7 +117,7 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
           />
 
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-white/10 mt-1">
+          <div className="flex items-center justify-between p-6 border-b border-border mt-1">
             <div className="flex items-center gap-3">
               <div
                 className="p-2 rounded-lg"
@@ -129,15 +126,15 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
                 <Pencil className="h-5 w-5" style={{ color: selectedColor }} />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-white">Edit Budget</h2>
-                <p className="text-sm text-gray-400">
-                  Updating: <span className="text-white font-medium">{budget?.name}</span>
+                <h2 className="text-xl font-semibold text-foreground">Edit Budget</h2>
+                <p className="text-sm text-muted">
+                  Updating: <span className="text-foreground font-medium">{budget?.name}</span>
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+              className="p-2 rounded-lg text-muted hover:text-foreground hover:bg-hover transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
@@ -148,26 +145,26 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
 
             {/* Budget Name */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Budget Name</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Budget Name</label>
               <input
                 type="text"
                 placeholder="e.g., Monthly Food Budget"
                 {...register('name')}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 transition-colors"
+                className="w-full px-4 py-3 input-field rounded-xl placeholder:text-muted transition-colors"
               />
               {errors.name && <p className="mt-2 text-sm text-red-400">{errors.name.message}</p>}
             </div>
 
             {/* Category */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Category</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Category</label>
               <select
                 {...register('category')}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500/50 transition-colors"
+                className="w-full px-4 py-3 bg-surface/50 border border-border rounded-xl text-foreground focus:outline-none focus:border-primary/50 transition-colors"
               >
-                <option className="bg-gray-900 text-white" value="">Select category</option>
+                <option className="bg-surface text-foreground" value="">Select category</option>
                 {categories.map((cat) => (
-                  <option className="bg-gray-900 text-white" key={cat._id} value={cat._id}>
+                  <option className="bg-surface text-foreground" key={cat._id} value={cat._id}>
                     {cat.name}
                   </option>
                 ))}
@@ -177,16 +174,16 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
 
             {/* Amount */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Budget Amount (₹)</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Budget Amount (₹)</label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">₹</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted font-medium">₹</span>
                 <input
                   type="number"
                   placeholder="0.00"
                   step="0.01"
                   min="0.01"
                   {...register('amount', { valueAsNumber: true })}
-                  className="w-full pl-8 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 transition-colors"
+                  className="w-full pl-8 pr-4 py-3 bg-surface/50 border border-border rounded-xl text-foreground placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors"
                 />
               </div>
               {errors.amount && <p className="mt-2 text-sm text-red-400">{errors.amount.message}</p>}
@@ -195,26 +192,26 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
             {/* Period */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Month</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Month</label>
                 <select
                   {...register('month', { valueAsNumber: true })}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500/50 transition-colors"
+                  className="w-full px-4 py-3 bg-surface/50 border border-border rounded-xl text-foreground focus:outline-none focus:border-primary/50 transition-colors"
                 >
                   {months.map((m) => (
-                    <option className="bg-gray-900 text-white" key={m.value} value={m.value}>
+                    <option className="bg-surface text-foreground" key={m.value} value={m.value}>
                       {m.label}
                     </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Year</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Year</label>
                 <select
                   {...register('year', { valueAsNumber: true })}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500/50 transition-colors"
+                  className="w-full px-4 py-3 bg-surface/50 border border-border rounded-xl text-foreground focus:outline-none focus:border-primary/50 transition-colors"
                 >
                   {years.map((y) => (
-                    <option className="bg-gray-900 text-white" key={y} value={y}>{y}</option>
+                    <option className="bg-surface text-foreground" key={y} value={y}>{y}</option>
                   ))}
                 </select>
               </div>
@@ -222,18 +219,18 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
 
             {/* Alert Threshold */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Alert Threshold</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Alert Threshold</label>
               <div className="space-y-3">
                 <input
                   type="range"
                   min="1"
                   max="100"
                   {...register('alertAt', { valueAsNumber: true })}
-                  className="w-full accent-indigo-500"
+                  className="w-full accent-primary"
                 />
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Alert when budget reaches</span>
-                  <span className="text-white font-semibold">{alertAt}%</span>
+                  <span className="text-muted">Alert when budget reaches</span>
+                  <span className="text-foreground font-semibold">{alertAt}%</span>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
                   {[50, 70, 80, 90].map((val) => (
@@ -243,8 +240,8 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
                       onClick={() => setValue('alertAt', val)}
                       className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                         alertAt === val
-                          ? 'bg-indigo-600 text-white scale-105'
-                          : 'bg-white/10 text-gray-400 hover:text-white hover:bg-white/15'
+                          ? 'bg-primary text-primary-foreground scale-105'
+                          : 'bg-surface/50 text-muted hover:text-foreground hover:bg-surface/75'
                       }`}
                     >
                       {val}%
@@ -256,7 +253,7 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
 
             {/* Color */}
             <div>
-              <label className="block text-sm font-medium text-white mb-3">Budget Color</label>
+              <label className="block text-sm font-medium text-foreground mb-3">Budget Color</label>
               <div className="flex flex-wrap gap-2">
                 {colors.map((color) => (
                   <button
@@ -264,7 +261,7 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
                     type="button"
                     onClick={() => setValue('color', color)}
                     className={`w-10 h-10 rounded-xl border-2 transition-all duration-150 ${
-                      selectedColor === color ? 'border-white scale-110 shadow-lg' : 'border-transparent hover:scale-105'
+                      selectedColor === color ? 'border-foreground scale-110 shadow-lg' : 'border-transparent hover:scale-105'
                     }`}
                     style={{ backgroundColor: color }}
                   />
@@ -277,19 +274,19 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
               <motion.div
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-4 bg-white/5 rounded-xl border border-white/10"
+                className="p-4 bg-surface/50 rounded-xl border border-border"
               >
-                <h4 className="text-sm font-medium text-gray-400 mb-3">Live Preview</h4>
+                <h4 className="text-sm font-medium text-muted mb-3">Live Preview</h4>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: selectedColor }} />
-                    <span className="text-sm text-white">
+                    <span className="text-sm text-foreground">
                       {categories.find((c) => c._id === selectedCategory)?.name || 'Category'}
                     </span>
                   </div>
-                  <span className="text-sm font-semibold text-white">{formatCurrency(selectedAmount)}</span>
+                  <span className="text-sm font-semibold text-foreground">{formatCurrency(selectedAmount)}</span>
                 </div>
-                <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                <div className="w-full bg-border rounded-full h-1.5 overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-300"
                     style={{
@@ -298,7 +295,7 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
                     }}
                   />
                 </div>
-                <div className="flex justify-between mt-2 text-xs text-gray-500">
+                <div className="flex justify-between mt-2 text-xs text-muted">
                   <span>Spent: {formatCurrency(budget?.spent || 0)}</span>
                   <span>Alert at {formatCurrency(selectedAmount * (alertAt / 100))}</span>
                 </div>
@@ -310,14 +307,14 @@ export function EditBudgetModal({ budget, categories, onClose, onSuccess }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-colors font-medium"
+                className="btn-secondary flex-1 px-4 py-3 rounded-xl font-medium"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={updateMutation.isPending}
-                className="flex-1 px-4 py-3 text-white rounded-xl transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-110 active:scale-[0.99]"
+                className="flex-1 px-4 py-3 text-foreground rounded-xl transition-all font-medium disabled:bg-disabled disabled:text-disabled-foreground disabled:cursor-not-allowed disabled:opacity-100 disabled:pointer-events-none hover:brightness-110 active:scale-[0.99]"
                 style={{ backgroundColor: selectedColor }}
               >
                 {updateMutation.isPending ? (

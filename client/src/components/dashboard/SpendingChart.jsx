@@ -1,7 +1,9 @@
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts'
+import { useChartTheme } from '../../hooks/useChartTheme'
+import { CHART_COLORS } from '../../lib/designTokens'
 
 export function SpendingChart({ data = [] }) {
-  const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308']
+  const { tooltipProps } = useChartTheme()
 
   return (
     <ResponsiveContainer width="100%" height={200}>
@@ -16,13 +18,10 @@ export function SpendingChart({ data = [] }) {
           dataKey="amount"
         >
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
+            <Cell key={`cell-${index}`} fill={entry.color || CHART_COLORS[index % CHART_COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip 
-          contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }}
-          labelStyle={{ color: '#F3F4F6' }}
-        />
+        <Tooltip {...tooltipProps} />
       </PieChart>
     </ResponsiveContainer>
   )

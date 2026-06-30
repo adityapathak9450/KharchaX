@@ -37,7 +37,7 @@ export function ReportCard({ report, onDownload, onDelete }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-5 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.12] hover:bg-white/[0.05] transition-all group"
+      className="p-5 rounded-xl card hover:border-border hover:bg-hover transition-all group"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
@@ -46,8 +46,8 @@ export function ReportCard({ report, onDownload, onDelete }) {
             <FileText className="w-5 h-5 text-blue-400" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-white">{typeLabels[report.type]}</h3>
-            <p className="text-xs text-gray-500">{formatLabels[report.format]?.toUpperCase() || 'PDF'}</p>
+            <h3 className="text-sm font-semibold text-foreground">{typeLabels[report.type]}</h3>
+            <p className="text-xs text-muted">{formatLabels[report.format]?.toUpperCase() || 'PDF'}</p>
           </div>
         </div>
         <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${statusColors[report.status]}`}>
@@ -58,24 +58,24 @@ export function ReportCard({ report, onDownload, onDelete }) {
 
       {/* Period */}
       <div className="mb-4">
-        <p className="text-xs text-gray-500 mb-1">Period</p>
-        <p className="text-sm font-medium text-white">{report.periodLabel || 'Custom'}</p>
+        <p className="text-xs text-muted mb-1">Period</p>
+        <p className="text-sm font-medium text-foreground">{report.periodLabel || 'Custom'}</p>
       </div>
 
       {/* Created At */}
       <div className="mb-4">
-        <p className="text-xs text-gray-500 mb-1">Generated</p>
-        <p className="text-sm text-gray-400">
+        <p className="text-xs text-muted mb-1">Generated</p>
+        <p className="text-sm text-muted">
           {report.generatedAt ? dayjs(report.generatedAt).fromNow() : dayjs(report.createdAt).fromNow()}
         </p>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2 pt-4 border-t border-white/[0.08]">
+      <div className="flex items-center gap-2 pt-4 border-t border-border">
         {report.status === 'ready' ? (
           <button
            onClick={() => onDownload(report)}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-500/10 text-indigo-400 text-xs font-medium hover:bg-indigo-500/20 transition-all"
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-all"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Download</span>
@@ -83,7 +83,7 @@ export function ReportCard({ report, onDownload, onDelete }) {
         ) : report.status === 'pending' ? (
           <button
             disabled
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 text-gray-500 text-xs font-medium cursor-not-allowed"
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-hover text-muted text-xs font-medium cursor-not-allowed"
           >
             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
             <span>Generating...</span>

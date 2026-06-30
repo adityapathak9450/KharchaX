@@ -48,23 +48,23 @@ export function BudgetFilters({ filters, categories, onFilterChange, onClose }) 
         initial={{ opacity: 0, height: 0 }}
         animate={{ opacity: 1, height: 'auto' }}
         exit={{ opacity: 0, height: 0 }}
-        className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 space-y-6"
+        className="bg-surface/50 border border-border rounded-2xl p-6 space-y-6"
       >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">Filters</h3>
+          <h3 className="text-lg font-semibold text-foreground">Filters</h3>
           <div className="flex items-center gap-2">
             {hasActiveFilters && (
               <button
                 onClick={clearAllFilters}
-                className="px-3 py-1 text-sm text-gray-400 hover:text-white transition-colors"
+                className="px-3 py-1 text-sm text-muted hover:text-foreground transition-colors"
               >
                 Clear all
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+              className="p-1 rounded-lg text-muted hover:text-foreground hover:bg-hover transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -74,14 +74,14 @@ export function BudgetFilters({ filters, categories, onFilterChange, onClose }) 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Month */}
           <div>
-            <label className="block text-sm font-medium text-white mb-3">Month</label>
+            <label className="block text-sm font-medium text-foreground mb-3">Month</label>
             <select
               value={localFilters.month}
               onChange={(e) => handleFilterChange('month', parseInt(e.target.value))}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50"
+              className="w-full px-3 py-2 input-field rounded-lg text-sm"
             >
               {months.map((month) => (
-                <option className="bg-gray-900 text-white" key={month.value} value={month.value}>
+                <option className="bg-surface text-foreground" key={month.value} value={month.value}>
                   {month.label}
                 </option>
               ))}
@@ -90,14 +90,14 @@ export function BudgetFilters({ filters, categories, onFilterChange, onClose }) 
 
           {/* Year */}
           <div>
-            <label className="block text-sm font-medium text-white mb-3">Year</label>
+            <label className="block text-sm font-medium text-foreground mb-3">Year</label>
             <select
               value={localFilters.year}
               onChange={(e) => handleFilterChange('year', parseInt(e.target.value))}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50"
+              className="w-full px-3 py-2 input-field rounded-lg text-sm"
             >
               {years.map((year) => (
-                <option className="bg-gray-900 text-white" key={year} value={year}>
+                <option className="bg-surface text-foreground" key={year} value={year}>
                   {year}
                 </option>
               ))}
@@ -106,15 +106,15 @@ export function BudgetFilters({ filters, categories, onFilterChange, onClose }) 
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-white mb-3">Category</label>
+            <label className="block text-sm font-medium text-foreground mb-3">Category</label>
             <select
               value={localFilters.category}
               onChange={(e) => handleFilterChange('category', e.target.value)}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50"
+              className="w-full px-3 py-2 input-field rounded-lg text-sm"
             >
-              <option className="bg-gray-900 text-white" value="">All Categories</option>
+              <option className="bg-surface text-foreground" value="">All Categories</option>
               {categories.map((category) => (
-                <option className="bg-gray-900 text-white" key={category._id} value={category._id}>
+                <option className="bg-surface text-foreground" key={category._id} value={category._id}>
                   {category.name}
                 </option>
               ))}
@@ -123,68 +123,68 @@ export function BudgetFilters({ filters, categories, onFilterChange, onClose }) 
 
           {/* Status */}
           <div>
-            <label className="block text-sm font-medium text-white mb-3">Status</label>
+            <label className="block text-sm font-medium text-foreground mb-3">Status</label>
             <select
               value={localFilters.status}
               onChange={(e) => handleFilterChange('status', e.target.value)}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50"
+              className="w-full px-3 py-2 input-field rounded-lg text-sm"
             >
-              <option className="bg-gray-900 text-white" value="all">All Status</option>
-              <option className="bg-gray-900 text-white" value="on-track">On Track</option>
-              <option className="bg-gray-900 text-white" value="alerting">Alerting</option>
-              <option className="bg-gray-900 text-white" value="exceeded">Exceeded</option>
+              <option className="bg-surface text-foreground" value="all">All Status</option>
+              <option className="bg-surface text-foreground" value="on-track">On Track</option>
+              <option className="bg-surface text-foreground" value="alerting">Alerting</option>
+              <option className="bg-surface text-foreground" value="exceeded">Exceeded</option>
             </select>
           </div>
         </div>
 
         {/* Active Filters Summary */}
         {hasActiveFilters && (
-          <div className="pt-4 border-t border-white/10">
+          <div className="pt-4 border-t border-border">
             <div className="flex flex-wrap gap-2">
               {localFilters.month && (
-                <span className="px-3 py-1 bg-indigo-600/20 text-indigo-400 rounded-full text-sm flex items-center gap-2">
+                <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm flex items-center gap-2">
                   <Calendar className="h-3 w-3" />
                   {months.find(m => m.value === localFilters.month)?.label}
                   <button
                     onClick={() => handleFilterChange('month', new Date().getMonth() + 1)}
-                    className="text-indigo-400 hover:text-indigo-300"
+                    className="text-primary hover:text-primary/80"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </span>
               )}
               {localFilters.year && (
-                <span className="px-3 py-1 bg-indigo-600/20 text-indigo-400 rounded-full text-sm flex items-center gap-2">
+                <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm flex items-center gap-2">
                   {localFilters.year}
                   <button
                     onClick={() => handleFilterChange('year', new Date().getFullYear())}
-                    className="text-indigo-400 hover:text-indigo-300"
+                    className="text-primary hover:text-primary/80"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </span>
               )}
               {localFilters.category && (
-                <span className="px-3 py-1 bg-indigo-600/20 text-indigo-400 rounded-full text-sm flex items-center gap-2">
+                <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm flex items-center gap-2">
                   <Target className="h-3 w-3" />
                   {categories.find(c => c._id === localFilters.category)?.name || 'Category'}
                   <button
                     onClick={() => handleFilterChange('category', '')}
-                    className="text-indigo-400 hover:text-indigo-300"
+                    className="text-primary hover:text-primary/80"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </span>
               )}
               {localFilters.status && localFilters.status !== 'all' && (
-                <span className="px-3 py-1 bg-indigo-600/20 text-indigo-400 rounded-full text-sm flex items-center gap-2">
+                <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm flex items-center gap-2">
                   {localFilters.status === 'on-track' && <TrendingUp className="h-3 w-3" />}
                   {localFilters.status === 'alerting' && <AlertTriangle className="h-3 w-3" />}
                   {localFilters.status === 'exceeded' && <AlertTriangle className="h-3 w-3" />}
                   {localFilters.status.charAt(0).toUpperCase() + localFilters.status.slice(1).replace('-', ' ')}
                   <button
                     onClick={() => handleFilterChange('status', 'all')}
-                    className="text-indigo-400 hover:text-indigo-300"
+                    className="text-primary hover:text-primary/80"
                   >
                     <X className="h-3 w-3" />
                   </button>

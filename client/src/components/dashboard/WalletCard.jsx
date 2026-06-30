@@ -20,7 +20,7 @@ export function WalletCard({ wallet }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.02 }}
-      className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.03] to-white/[0.01] p-5 backdrop-blur-sm transition-all hover:border-white/20"
+      className="card-interactive p-5"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
@@ -32,18 +32,18 @@ export function WalletCard({ wallet }) {
             {walletIcons[wallet.type] || walletIcons.bank}
           </div>
           <div>
-            <h4 className="font-semibold text-white">{wallet.name}</h4>
-            <p className="text-xs text-gray-400 capitalize">{wallet.type}</p>
+            <h4 className="font-semibold text-foreground">{wallet.name}</h4>
+            <p className="text-xs text-muted capitalize">{wallet.type}</p>
           </div>
         </div>
-        <button className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+        <button className="p-1 rounded-lg text-muted hover:text-foreground hover:bg-hover transition-colors">
           <MoreHorizontal className="h-4 w-4" />
         </button>
       </div>
 
       {/* Balance */}
       <div className="mb-3">
-        <p className="text-2xl font-bold text-white">
+        <p className="text-2xl font-bold text-foreground">
           {formatCurrency(wallet.balance)}
         </p>
         {balanceChange !== 0 && (
@@ -61,14 +61,14 @@ export function WalletCard({ wallet }) {
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-3 border-t border-white/10">
+      <div className="flex items-center justify-between pt-3 border-t border-border">
         <div className="flex items-center gap-2">
-          <Wallet className="h-3 w-3 text-gray-400" />
-          <span className="text-xs text-gray-400">
+          <Wallet className="h-3 w-3 text-muted" />
+          <span className="text-xs text-muted">
             {wallet.transactionCount || 0} transactions
           </span>
         </div>
-        <span className="text-xs text-gray-500">
+        <span className="text-xs text-muted">
           {wallet.currency || 'INR'}
         </span>
       </div>

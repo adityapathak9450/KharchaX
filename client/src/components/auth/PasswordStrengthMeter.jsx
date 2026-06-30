@@ -1,7 +1,7 @@
 import { getPasswordStrengthLabel, getPasswordStrengthLevel } from '../../utils/passwordStrength'
 
 const bar = (active) =>
-  `h-1 flex-1 rounded-full transition-colors ${active ? 'bg-indigo-500' : 'bg-white/10'}`
+  `h-1 flex-1 rounded-full transition-colors ${active ? 'bg-primary' : 'bg-elevated'}`
 
 export function PasswordStrengthMeter({ password }) {
   const level = getPasswordStrengthLevel(password || '')

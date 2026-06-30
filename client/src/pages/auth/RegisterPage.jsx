@@ -55,8 +55,8 @@ export default function RegisterPage() {
   return (
     <AuthShell>
       <div className="mx-auto w-full max-w-md">
-        <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Create your account</h1>
-        <p className="mt-2 text-sm text-gray-400">Start managing finances with VaultX in minutes.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Create your account</h1>
+        <p className="mt-2 text-sm text-muted">Start managing finances with VaultX in minutes.</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-10 space-y-5">
           <FloatingField
@@ -86,7 +86,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setShowPw((v) => !v)}
-                  className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-white/10 hover:text-white"
+                  className="rounded-lg p-1.5 text-muted transition-colors hover:bg-hover hover:text-foreground"
                   aria-label={showPw ? 'Hide password' : 'Show password'}
                 >
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -108,7 +108,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowPw2((v) => !v)}
-                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-white/10 hover:text-white"
+                className="rounded-lg p-1.5 text-muted transition-colors hover:bg-hover hover:text-foreground"
                 aria-label={showPw2 ? 'Hide password' : 'Show password'}
               >
                 {showPw2 ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -120,17 +120,17 @@ export default function RegisterPage() {
             name="terms"
             control={control}
             render={({ field }) => (
-              <label className="flex cursor-pointer items-start gap-3 text-sm text-gray-300">
+              <label className="flex cursor-pointer items-start gap-3 text-sm text-muted">
                 <input
                   type="checkbox"
                   checked={field.value}
                   onChange={(ev) => field.onChange(ev.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-white/20 bg-white/5 text-indigo-600 focus:ring-indigo-500/40"
+                  className="mt-0.5 h-4 w-4 rounded border-border bg-hover text-primary focus:ring-ring/40"
                 />
                 <span>
                   I agree to the{' '}
-                  <span className="text-indigo-400">Terms of Service</span> and{' '}
-                  <span className="text-indigo-400">Privacy Policy</span>
+                  <span className="text-primary">Terms of Service</span> and{' '}
+                  <span className="text-primary">Privacy Policy</span>
                 </span>
               </label>
             )}
@@ -141,16 +141,16 @@ export default function RegisterPage() {
             type="submit"
             disabled={isLoading}
             whileTap={{ scale: 0.98 }}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-medium text-white transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-primary w-full py-3 text-sm gap-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 disabled:cursor-not-allowed disabled:pointer-events-none"
           >
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             {isLoading ? 'Creating account…' : 'Create account'}
           </motion.button>
         </form>
 
-        <p className="mt-10 text-center text-sm text-gray-400">
+        <p className="mt-10 text-center text-sm text-muted">
           Already have an account?{' '}
-          <Link to="/login" className="font-medium text-indigo-400 hover:text-indigo-300">
+          <Link to="/login" className="font-medium text-primary hover:text-primary/80">
             Sign in
           </Link>
         </p>

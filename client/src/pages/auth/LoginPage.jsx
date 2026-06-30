@@ -50,8 +50,8 @@ export default function LoginPage() {
   return (
     <AuthShell>
       <div className="mx-auto w-full max-w-md">
-        <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Welcome back</h1>
-        <p className="mt-2 text-sm text-gray-400">Sign in to continue to your workspace.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Welcome back</h1>
+        <p className="mt-2 text-sm text-muted">Sign in to continue to your workspace.</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-10 space-y-5">
           <FloatingField
@@ -73,7 +73,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPw((v) => !v)}
-                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-white/10 hover:text-white"
+                className="rounded-lg p-1.5 text-muted transition-colors hover:bg-hover hover:text-foreground"
                 aria-label={showPw ? 'Hide password' : 'Show password'}
               >
                 {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -84,7 +84,7 @@ export default function LoginPage() {
           <div className="flex justify-end">
             <Link
               to="/forgot-password"
-              className="text-sm font-medium text-indigo-400 transition-colors hover:text-indigo-300"
+              className="text-sm font-medium text-primary transition-colors hover:text-primary/80"
             >
               Forgot password?
             </Link>
@@ -94,7 +94,7 @@ export default function LoginPage() {
             type="submit"
             disabled={isLoading}
             whileTap={{ scale: 0.98 }}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-medium text-white transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-primary w-full py-3 text-sm gap-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 disabled:cursor-not-allowed disabled:pointer-events-none"
           >
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             {isLoading ? 'Signing in…' : 'Sign in'}
@@ -103,16 +103,16 @@ export default function LoginPage() {
 
         <div className="relative my-10">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/10" />
+            <div className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-xs uppercase tracking-wider">
-            <span className="bg-gray-950 px-3 text-gray-500">or</span>
+            <span className="bg-canvas px-3 text-muted">or</span>
           </div>
         </div>
 
-        <p className="text-center text-sm text-gray-400">
+        <p className="text-center text-sm text-muted">
           New to VaultX?{' '}
-          <Link to="/register" className="font-medium text-indigo-400 hover:text-indigo-300">
+          <Link to="/register" className="font-medium text-primary hover:text-primary/80">
             Create account
           </Link>
         </p>

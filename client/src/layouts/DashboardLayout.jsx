@@ -33,7 +33,7 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="flex h-screen bg-[#0f0f0f]">
+    <div className="flex h-screen bg-canvas">
       {/* Sidebar */}
       <Sidebar
         isOpen={sidebarOpen}
@@ -48,7 +48,7 @@ export default function DashboardLayout() {
           isMobile={isMobile}
         />
         
-        <main className="pt-16 p-6 min-h-screen bg-[#0f0f0f] overflow-y-auto">
+        <main className="pt-16 p-6 min-h-screen bg-canvas overflow-y-auto">
           <Outlet />
         </main>
       </div>

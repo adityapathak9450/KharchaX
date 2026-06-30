@@ -13,25 +13,25 @@ export function WalletStats({ walletId }) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-      <div className="p-5 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-        <p className="text-xs text-gray-500 mb-1">This Month</p>
-        <p className="text-lg font-bold text-white">{formatCurrency(stats.monthlyIncome || 0)}</p>
+      <div className="p-5 rounded-xl card">
+        <p className="text-xs text-muted mb-1">This Month</p>
+        <p className="text-lg font-bold text-foreground">{formatCurrency(stats.monthlyIncome || 0)}</p>
         <p className="text-xs text-green-400 mt-1">Income</p>
       </div>
-      <div className="p-5 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-        <p className="text-xs text-gray-500 mb-1">This Month</p>
-        <p className="text-lg font-bold text-white">{formatCurrency(stats.monthlyExpense || 0)}</p>
+      <div className="p-5 rounded-xl card">
+        <p className="text-xs text-muted mb-1">This Month</p>
+        <p className="text-lg font-bold text-foreground">{formatCurrency(stats.monthlyExpense || 0)}</p>
         <p className="text-xs text-red-400 mt-1">Expenses</p>
       </div>
-      <div className="p-5 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-        <p className="text-xs text-gray-500 mb-1">Average</p>
-        <p className="text-lg font-bold text-white">{formatCurrency(stats.avgDailyExpense || 0)}</p>
-        <p className="text-xs text-gray-400 mt-1">Daily Spend</p>
+      <div className="p-5 rounded-xl card">
+        <p className="text-xs text-muted mb-1">Average</p>
+        <p className="text-lg font-bold text-foreground">{formatCurrency(stats.avgDailyExpense || 0)}</p>
+        <p className="text-xs text-muted mt-1">Daily Spend</p>
       </div>
-      <div className="p-5 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-        <p className="text-xs text-gray-500 mb-1">Top Category</p>
-        <p className="text-lg font-bold text-white truncate">{stats.topCategory?.name || 'N/A'}</p>
-        <p className="text-xs text-gray-400 mt-1">Most Spent</p>
+      <div className="p-5 rounded-xl card">
+        <p className="text-xs text-muted mb-1">Top Category</p>
+        <p className="text-lg font-bold text-foreground truncate">{stats.topCategory?.name || 'N/A'}</p>
+        <p className="text-xs text-muted mt-1">Most Spent</p>
       </div>
     </div>
   )

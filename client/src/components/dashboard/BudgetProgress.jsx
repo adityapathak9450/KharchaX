@@ -33,11 +33,11 @@ export function BudgetProgress({ budget }) {
             className="w-3 h-3 rounded-full"
             style={{ backgroundColor: budget.color }}
           />
-          <span className="text-sm font-medium text-white">
+          <span className="text-sm font-medium text-foreground">
             {budget.name}
           </span>
           {budget.category?.name && (
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-muted">
               ({budget.category.name})
             </span>
           )}
@@ -62,13 +62,13 @@ export function BudgetProgress({ budget }) {
 
       {/* Progress bar */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs text-gray-400">
+        <div className="flex items-center justify-between text-xs text-muted">
           <span>{formatCurrency(budget.spent)} spent</span>
           <span>{formatCurrency(remaining)} left</span>
         </div>
         
         <div className="relative">
-          <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-elevated rounded-full h-2 overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(utilizationPercent, 100)}%` }}
@@ -94,7 +94,7 @@ export function BudgetProgress({ budget }) {
           }`}>
             {utilizationPercent.toFixed(1)}% used
           </span>
-          <span className="text-gray-500">
+          <span className="text-muted">
             {formatCurrency(budget.amount)} total
           </span>
         </div>

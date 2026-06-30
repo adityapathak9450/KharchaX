@@ -12,9 +12,16 @@ export default {
         canvas: 'rgb(var(--color-canvas) / <alpha-value>)',
         surface: 'rgb(var(--color-surface) / <alpha-value>)',
         elevated: 'rgb(var(--color-elevated) / <alpha-value>)',
+        hover: 'rgb(var(--color-hover) / <alpha-value>)',
         border: 'rgb(var(--color-border) / <alpha-value>)',
         muted: 'rgb(var(--color-muted) / <alpha-value>)',
         foreground: 'rgb(var(--color-foreground) / <alpha-value>)',
+        overlay: 'rgb(var(--color-overlay) / <alpha-value>)',
+        ring: 'rgb(var(--color-ring) / <alpha-value>)',
+        disabled: {
+          DEFAULT: 'rgb(var(--color-disabled-bg) / <alpha-value>)',
+          foreground: 'rgb(var(--color-disabled-fg) / <alpha-value>)',
+        },
       },
       borderRadius: {
         sm: 'var(--radius-sm)',
@@ -51,9 +58,11 @@ export default {
         mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       boxShadow: {
-        card: '0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.08)',
-        'card-dark':
-          '0 1px 2px 0 rgb(0 0 0 / 0.35), 0 8px 24px -4px rgb(0 0 0 / 0.45)',
+        card: 'var(--shadow-card)',
+        'card-hover': 'var(--shadow-card-hover)',
+        navbar: 'var(--shadow-navbar)',
+        dropdown: 'var(--shadow-dropdown)',
+        input: 'var(--shadow-input)',
       },
     },
   },

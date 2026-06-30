@@ -9,6 +9,7 @@ import { formatCurrency, formatDateTime, formatRelativeTime } from '../../utils/
 import { TransactionForm } from '../../components/transactions/TransactionForm'
 import { TransactionFilters } from '../../components/transactions/TransactionFilters'
 import { CSVImportModal } from '../../components/transactions/CSVImportModal'
+import { DEFAULT_ACCENT, TRANSACTION_TYPE_STYLES, categoryBadgeStyle } from '../../lib/designTokens'
 
 export default function TransactionsPage() {
   const [search, setSearch] = useState('')
@@ -52,7 +53,7 @@ const getTransactionIconStyles = (type, color) => {
     return {
       background: 'linear-gradient(135deg, rgba(34,197,94,0.25), rgba(22,163,74,0.15))',
       border: '1px solid rgba(34,197,94,0.25)',
-      color: '#4ade80'
+      color: TRANSACTION_TYPE_STYLES.income.color,
     }
   }
 
@@ -60,15 +61,11 @@ const getTransactionIconStyles = (type, color) => {
     return {
       background: 'linear-gradient(135deg, rgba(239,68,68,0.22), rgba(185,28,28,0.12))',
       border: '1px solid rgba(239,68,68,0.25)',
-      color: '#f87171'
+      color: TRANSACTION_TYPE_STYLES.expense.color,
     }
   }
 
-  return {
-    background: `${color || '#6366f1'}20`,
-    border: `1px solid ${color || '#6366f1'}30`,
-    color: color || '#a5b4fc'
-  }
+  return categoryBadgeStyle(color)
 }
 
   const { data: transactions, isLoading, refetch } = useQuery({
@@ -160,28 +157,28 @@ const getTransactionIconStyles = (type, color) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Transactions</h1>
-          <p className="text-gray-400 mt-1">Track all your income and expenses</p>
+          <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
+          <p className="text-muted mt-1">Track all your income and expenses</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => exportCSVMutation.mutate()}
             disabled={exportCSVMutation.isLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border text-foreground rounded-lg hover:bg-hover shadow-sm transition-colors disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 disabled:cursor-not-allowed disabled:pointer-events-none"
           >
             <Download className="h-4 w-4" />
             Export
           </button>
           <button
             onClick={() => setShowImportModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border text-foreground rounded-lg hover:bg-hover shadow-sm transition-colors"
           >
             <Upload className="h-4 w-4" />
             Import
           </button>
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="btn-primary px-4 py-2 gap-2"
           >
             <Plus className="h-4 w-4" />
             Add Transaction
@@ -191,38 +188,38 @@ const getTransactionIconStyles = (type, color) => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+        <div className="card p-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-500/20 rounded-lg">
               <ArrowUpRight className="h-5 w-5 text-green-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-400">Total Income</p>
-              <p className="text-xl font-bold text-white">{formatCurrency(totalIncome)}</p>
+              <p className="text-sm text-muted">Total Income</p>
+              <p className="text-xl font-bold text-foreground">{formatCurrency(totalIncome)}</p>
             </div>
           </div>
         </div>
         
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+        <div className="card p-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-red-500/20 rounded-lg">
               <ArrowDownRight className="h-5 w-5 text-red-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-400">Total Expenses</p>
-              <p className="text-xl font-bold text-white">{formatCurrency(totalExpenses)}</p>
+              <p className="text-sm text-muted">Total Expenses</p>
+              <p className="text-xl font-bold text-foreground">{formatCurrency(totalExpenses)}</p>
             </div>
           </div>
         </div>
         
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+        <div className="card p-6">
           <div className="flex items-center gap-3">
             <div className={`p-2 rounded-lg ${netAmount >= 0 ? 'bg-blue-500/20' : 'bg-red-500/20'}`}>
               <Wallet className="h-5 w-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-400">Net Amount</p>
-              <p className={`text-xl font-bold ${netAmount >= 0 ? 'text-white' : 'text-red-400'}`}>
+              <p className="text-sm text-muted">Net Amount</p>
+              <p className={`text-xl font-bold ${netAmount >= 0 ? 'text-foreground' : 'text-red-400'}`}>
                 {formatCurrency(Math.abs(netAmount))}
                 {netAmount < 0 && ' (Expense)'}
               </p>
@@ -234,13 +231,13 @@ const getTransactionIconStyles = (type, color) => {
       {/* Search and Filters */}
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted" />
           <input
             type="text"
             placeholder="Search transactions..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 pr-4 py-2 w-full bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50"
+            className="pl-10 pr-4 py-2 w-full input-field rounded-xl text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/50"
           />
         </div>
         
@@ -249,14 +246,14 @@ const getTransactionIconStyles = (type, color) => {
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors ${
               activeFiltersCount > 0 
-                ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' 
-                : 'bg-white/10 text-gray-400 border border-white/10 hover:text-white'
+                ? 'bg-primary/15 text-primary border border-primary/30' 
+                : 'bg-elevated text-muted border border-border hover:text-foreground'
             }`}
           >
             <Filter className="h-4 w-4" />
             Filters
             {activeFiltersCount > 0 && (
-              <span className="px-2 py-0.5 bg-indigo-600 text-white text-xs rounded-full">
+              <span className="px-2 py-0.5 bg-primary text-primary-foreground text-xs rounded-full">
                 {activeFiltersCount}
               </span>
             )}
@@ -265,7 +262,7 @@ const getTransactionIconStyles = (type, color) => {
           {activeFiltersCount > 0 && (
             <button
               onClick={clearFilters}
-              className="px-3 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+              className="px-3 py-2 text-sm text-muted hover:text-foreground transition-colors"
             >
               Clear all
             </button>
@@ -285,32 +282,32 @@ const getTransactionIconStyles = (type, color) => {
       )}
 
       {/* Transactions List */}
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden">
+      <div className="card overflow-hidden">
         {isLoading ? (
           <div className="p-8 space-y-4">
             {[...Array(10)].map((_, i) => (
-              <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-xl animate-pulse">
+              <div key={i} className="flex items-center justify-between p-4 skeleton rounded-xl">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-white/10 rounded-xl"></div>
+                  <div className="w-10 h-10 bg-elevated rounded-xl"></div>
                   <div className="space-y-2">
-                    <div className="h-4 bg-white/10 rounded w-48"></div>
-                    <div className="h-3 bg-white/10 rounded w-32"></div>
+                    <div className="h-4 bg-elevated rounded w-48"></div>
+                    <div className="h-3 bg-elevated rounded w-32"></div>
                   </div>
                 </div>
                 <div className="text-right space-y-2">
-                  <div className="h-4 bg-white/10 rounded w-24"></div>
-                  <div className="h-3 bg-white/10 rounded w-16"></div>
+                  <div className="h-4 bg-elevated rounded w-24"></div>
+                  <div className="h-3 bg-elevated rounded w-16"></div>
                 </div>
               </div>
             ))}
           </div>
         ) : transactions?.transactions?.length === 0 ? (
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Tag className="h-8 w-8 text-gray-600" />
+            <div className="w-16 h-16 bg-elevated rounded-full flex items-center justify-center mx-auto mb-4">
+              <Tag className="h-8 w-8 text-muted" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">No transactions found</h3>
-            <p className="text-gray-400 mb-6">
+            <h3 className="text-lg font-medium text-foreground mb-2">No transactions found</h3>
+            <p className="text-muted mb-6">
               {search || activeFiltersCount > 0 
                 ? 'Try adjusting your search or filters' 
                 : 'Start tracking your finances by adding your first transaction'
@@ -319,7 +316,7 @@ const getTransactionIconStyles = (type, color) => {
             {!search && activeFiltersCount === 0 && (
               <button
                 onClick={() => setShowForm(true)}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="btn-primary px-4 py-2"
               >
                 Add Transaction
               </button>
@@ -328,36 +325,36 @@ const getTransactionIconStyles = (type, color) => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white/5 border-b border-white/10">
+              <thead className="table-header">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-muted uppercase tracking-wider">
                     Transaction
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-muted uppercase tracking-wider">
                     Category
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-muted uppercase tracking-wider">
                     Wallet
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-muted uppercase tracking-wider">
                     Date
                   </th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-right text-xs font-medium text-muted uppercase tracking-wider">
                     Amount
                   </th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-right text-xs font-medium text-muted uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/10">
+              <tbody className="divide-y divide-border">
                 {transactions?.transactions?.map((transaction, index) => (
                   <motion.tr
                     key={`list-${transaction._id}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="hover:bg-white/5 transition-colors"
+                    className="hover:bg-hover transition-colors"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -377,7 +374,7 @@ const getTransactionIconStyles = (type, color) => {
                             )
                            })()} 
                         <div>
-                          <p className="font-medium text-white">
+                          <p className="font-medium text-foreground">
                              {transaction.notes
                            ?.replace('Shared settlement paid — ', 'Settlement Paid • ')
                             ?.replace('Shared settlement received — ', 'Settlement Received • ')
@@ -395,12 +392,12 @@ const getTransactionIconStyles = (type, color) => {
                                         )
                                       .slice(0, 2)
                                        .map((tag, i) => (
-                                <span key={i} className="px-2 py-0.5 bg-white/10 text-xs text-gray-400 rounded-full">
+                                <span key={i} className="px-2 py-0.5 bg-elevated text-xs text-muted rounded-full">
                                   {tag}
                                 </span>
                               ))}
                               {transaction.tags.length > 2 && (
-                                <span className="px-2 py-0.5 bg-white/10 text-xs text-gray-400 rounded-full">
+                                <span className="px-2 py-0.5 bg-elevated text-xs text-muted rounded-full">
                                   +{transaction.tags.length - 2}
                                 </span>
                               )}
@@ -413,27 +410,27 @@ const getTransactionIconStyles = (type, color) => {
                       <div className="flex items-center gap-2">
                         <div 
                           className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: transaction.category?.color || '#6366f1' }}
+                          style={{ backgroundColor: transaction.category?.color || DEFAULT_ACCENT }}
                         />
-                        <span className="text-sm text-gray-300">
+                        <span className="text-sm text-muted">
                           {transaction.category?.name || 'Uncategorized'}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-300">
+                      <span className="text-sm text-muted">
                         {transaction.wallet?.name || 'Unknown'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-300">
+                      <div className="text-sm text-muted">
                         <div>{formatRelativeTime(transaction.date)}</div>
-                        <div className="text-xs text-gray-500">{formatDateTime(transaction.date)}</div>
+                        <div className="text-xs text-muted">{formatDateTime(transaction.date)}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className={`font-semibold ${
-                        transaction.type === 'income' ? 'text-green-400' : 'text-white'
+                        transaction.type === 'income' ? 'text-green-400' : 'text-foreground'
                       }`}>
                         {transaction.type === 'income' && '+'}
                         {formatCurrency(transaction.amount)}
@@ -443,7 +440,7 @@ const getTransactionIconStyles = (type, color) => {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleEdit(transaction)}
-                          className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                          className="p-1 rounded-lg text-muted hover:text-foreground hover:bg-hover transition-colors"
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </button>

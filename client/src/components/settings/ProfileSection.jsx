@@ -13,35 +13,35 @@ export function ProfileSection({ user, onUpdate, isPending }) {
   }
 
   return (
-    <div className="p-6 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-      <h2 className="text-lg font-semibold text-white mb-6">Profile Information</h2>
+    <div className="p-6 rounded-xl card">
+      <h2 className="text-lg font-semibold text-foreground mb-6">Profile Information</h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
+          <label className="block text-sm font-medium text-muted mb-2">Full Name</label>
           <div className="relative">
-            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted" />
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Your name"
-              className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 input-field rounded-lg text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all"
               required
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+          <label className="block text-sm font-medium text-muted mb-2">Email Address</label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted" />
             <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="your@email.com"
-              className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 input-field rounded-lg text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all"
               required
             />
           </div>
@@ -51,7 +51,7 @@ export function ProfileSection({ user, onUpdate, isPending }) {
           <button
             type="submit"
             disabled={isPending}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium transition-all disabled:opacity-50"
+            className="btn-primary px-4 py-2.5 text-sm gap-2 disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 disabled:cursor-not-allowed disabled:pointer-events-none"
           >
             <Save className="w-4 h-4" />
             <span>{isPending ? 'Saving...' : 'Save Changes'}</span>

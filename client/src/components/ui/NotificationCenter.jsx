@@ -14,8 +14,8 @@ const TYPE_META = {
   recurring_due:  { icon: RefreshCw,     color: 'text-blue-400',   bg: 'bg-blue-500/10'  },
   report_ready:   { icon: FileText,      color: 'text-green-400',  bg: 'bg-green-500/10' },
   shared_wallet:  { icon: Users,         color: 'text-purple-400', bg: 'bg-purple-500/10'},
-  transaction:    { icon: Wallet,        color: 'text-indigo-400', bg: 'bg-indigo-500/10'},
-  default:        { icon: Bell,          color: 'text-gray-400',   bg: 'bg-white/5'      },
+  transaction:    { icon: Wallet,        color: 'text-primary', bg: 'bg-primary/10'},
+  default:        { icon: Bell,          color: 'text-muted',   bg: 'bg-hover'      },
 }
 
 function NotificationItem({ notification, onMarkRead, onDelete }) {
@@ -31,12 +31,12 @@ function NotificationItem({ notification, onMarkRead, onDelete }) {
       exit={{ opacity: 0, x: 40 }}
       transition={{ duration: 0.2 }}
       className={`relative flex gap-3 p-3 rounded-xl transition-all group cursor-default
-        ${notification.isRead ? 'opacity-60' : 'bg-white/[0.03]'}
-        hover:bg-white/[0.06]`}
+        ${notification.isRead ? 'opacity-70' : 'notification-unread'}
+        hover:bg-hover`}
     >
       {/* Unread dot */}
       {!notification.isRead && (
-        <span className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-indigo-500" />
+        <span className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-primary" />
       )}
 
       {/* Icon */}
@@ -46,9 +46,9 @@ function NotificationItem({ notification, onMarkRead, onDelete }) {
 
       {/* Content */}
       <div className="flex-1 min-w-0 pr-4">
-        <p className="text-sm font-medium text-white leading-snug">{notification.title}</p>
-        <p className="text-xs text-gray-400 mt-0.5 leading-snug">{notification.message}</p>
-        <p className="text-[10px] text-gray-600 mt-1">{timeAgo}</p>
+        <p className="text-sm font-medium text-foreground leading-snug">{notification.title}</p>
+        <p className="text-xs text-muted mt-0.5 leading-snug">{notification.message}</p>
+        <p className="text-[10px] text-muted mt-1">{timeAgo}</p>
       </div>
 
       {/* Actions — visible on hover */}
@@ -57,7 +57,7 @@ function NotificationItem({ notification, onMarkRead, onDelete }) {
           <button
             onClick={(e) => { e.stopPropagation(); onMarkRead(notification._id) }}
             title="Mark as read"
-            className="p-1.5 rounded-lg hover:bg-white/10 text-gray-500 hover:text-green-400 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-hover text-muted hover:text-green-400 transition-colors"
           >
             <Check className="w-3.5 h-3.5" />
           </button>
@@ -65,7 +65,7 @@ function NotificationItem({ notification, onMarkRead, onDelete }) {
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(notification._id) }}
           title="Delete"
-          className="p-1.5 rounded-lg hover:bg-white/10 text-gray-500 hover:text-red-400 transition-colors"
+          className="p-1.5 rounded-lg hover:bg-hover text-muted hover:text-red-400 transition-colors"
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>
@@ -76,12 +76,12 @@ function NotificationItem({ notification, onMarkRead, onDelete }) {
 
 function SkeletonItem() {
   return (
-    <div className="flex gap-3 p-3 animate-pulse">
-      <div className="w-8 h-8 rounded-lg bg-white/10 flex-shrink-0" />
+    <div className="flex gap-3 p-3" aria-hidden="true">
+      <div className="w-8 h-8 rounded-lg skeleton flex-shrink-0" />
       <div className="flex-1 space-y-2">
-        <div className="h-3 bg-white/10 rounded w-3/4" />
-        <div className="h-2 bg-white/10 rounded w-full" />
-        <div className="h-2 bg-white/10 rounded w-1/3" />
+        <div className="skeleton h-3 w-3/4" />
+        <div className="skeleton h-2 w-full" />
+        <div className="skeleton h-2 w-1/3" />
       </div>
     </div>
   )
@@ -129,7 +129,7 @@ export default function NotificationCenter() {
       <button
         id="notification-bell"
         onClick={() => setOpen((v) => !v)}
-        className="relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+        className="relative p-2 rounded-lg text-muted hover:text-foreground hover:bg-hover transition-all focus-ring"
         aria-label="Notifications"
       >
         <Bell className="w-5 h-5" />
@@ -140,7 +140,7 @@ export default function NotificationCenter() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
-              className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-indigo-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+              className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-primary rounded-full flex items-center justify-center text-[10px] font-bold text-white"
             >
               {unreadCount > 99 ? '99+' : unreadCount}
             </motion.span>
@@ -157,14 +157,14 @@ export default function NotificationCenter() {
             animate={{ opacity: 1, scale: 1,    y: 0  }}
             exit={{ opacity: 0,  scale: 0.96, y: -8  }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute right-0 top-12 w-[380px] max-h-[520px] flex flex-col bg-[#1a1a1a] border border-white/[0.08] rounded-2xl shadow-2xl z-50 overflow-hidden"
+            className="absolute right-0 top-12 w-[380px] max-h-[520px] flex flex-col dropdown-panel z-50 overflow-hidden"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08]">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-white">Notifications</h3>
+                <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
                 {unreadCount > 0 && (
-                  <span className="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">
                     {unreadCount} new
                   </span>
                 )}
@@ -175,7 +175,7 @@ export default function NotificationCenter() {
                     onClick={handleMarkAllRead}
                     disabled={markAll.isPending}
                     title="Mark all as read"
-                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-indigo-400 px-2 py-1 rounded-lg hover:bg-white/5 transition-all"
+                    className="flex items-center gap-1 text-xs text-muted hover:text-primary px-2 py-1 rounded-lg hover:bg-hover transition-all"
                   >
                     <CheckCheck className="w-3.5 h-3.5" />
                     <span>All read</span>
@@ -186,14 +186,14 @@ export default function NotificationCenter() {
                     onClick={handleClearAll}
                     disabled={clearAll.isPending}
                     title="Clear all"
-                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-400 px-2 py-1 rounded-lg hover:bg-white/5 transition-all"
+                    className="flex items-center gap-1 text-xs text-muted hover:text-red-400 px-2 py-1 rounded-lg hover:bg-hover transition-all"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 )}
                 <button
                   onClick={() => setOpen(false)}
-                  className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all ml-1"
+                  className="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-hover transition-all ml-1"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -211,11 +211,11 @@ export default function NotificationCenter() {
                 </>
               ) : notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-3">
-                    <Bell className="w-6 h-6 text-gray-600" />
+                  <div className="w-12 h-12 rounded-2xl bg-hover flex items-center justify-center mb-3">
+                    <Bell className="w-6 h-6 text-muted" />
                   </div>
-                  <p className="text-sm text-gray-400 font-medium">All caught up!</p>
-                  <p className="text-xs text-gray-600 mt-1">No notifications yet.</p>
+                  <p className="text-sm text-muted font-medium">All caught up!</p>
+                  <p className="text-xs text-muted mt-1">No notifications yet.</p>
                 </div>
               ) : (
                 <AnimatePresence initial={false}>
@@ -233,11 +233,11 @@ export default function NotificationCenter() {
 
             {/* Footer */}
             {notifications.length > 0 && (
-              <div className="px-4 py-2.5 border-t border-white/[0.08] text-center">
+              <div className="px-4 py-2.5 border-t border-border text-center">
                 <a
                   href="/dashboard/notifications"
                   onClick={() => setOpen(false)}
-                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                  className="text-xs text-primary hover:text-primary/80 transition-colors"
                 >
                   View all notifications →
                 </a>

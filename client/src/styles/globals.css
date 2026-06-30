@@ -4,14 +4,48 @@
 
 @layer base {
   :root {
+    /* ── Light theme ── */
     --color-primary: 99 102 241;
     --color-primary-fg: 255 255 255;
     --color-canvas: 248 250 252;
     --color-surface: 255 255 255;
-    --color-elevated: 255 255 255;
-    --color-border: 226 232 240;
-    --color-muted: 100 116 139;
-    --color-foreground: 15 23 42;
+    --color-elevated: 249 250 251;
+    --color-hover: 243 244 246;
+    --color-border: 229 231 235;
+    --color-muted: 107 114 128;
+    --color-foreground: 17 24 39;
+    --color-overlay: 17 24 39;
+    --color-ring: 99 102 241;
+    --color-error: 239 68 68;
+    --color-disabled-bg: 243 244 246;
+    --color-disabled-fg: 156 163 175;
+
+    --color-chart-grid: 229 231 235;
+    --color-chart-axis: 107 114 128;
+    --color-chart-label: 107 114 128;
+    --color-chart-tooltip-bg: 255 255 255;
+    --color-chart-tooltip-border: 229 231 235;
+    --color-chart-tooltip-text: 17 24 39;
+    --color-chart-legend: 107 114 128;
+
+    --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.06);
+    --shadow-card-hover: 0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+    --shadow-navbar: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+    --shadow-dropdown: 0 10px 15px -3px rgb(0 0 0 / 0.06), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+    --shadow-input: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+
+    --primary: var(--color-primary);
+    --primary-fg: var(--color-primary-fg);
+    --canvas: var(--color-canvas);
+    --surface: var(--color-surface);
+    --elevated: var(--color-elevated);
+    --hover: var(--color-hover);
+    --border: var(--color-border);
+    --muted: var(--color-muted);
+    --foreground: var(--color-foreground);
+    --overlay: var(--color-overlay);
+    --ring: var(--color-ring);
+
     --radius-sm: 0.375rem;
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
@@ -22,14 +56,35 @@
   }
 
   .dark {
+    /* ── Dark theme — GitHub Dark / Linear / Vercel inspired ── */
     --color-primary: 129 140 248;
-    --color-primary-fg: 15 23 42;
-    --color-canvas: 2 6 23;
-    --color-surface: 15 23 42;
-    --color-elevated: 30 41 59;
-    --color-border: 51 65 85;
-    --color-muted: 148 163 184;
-    --color-foreground: 248 250 252;
+    --color-primary-fg: 255 255 255;
+    --color-canvas: 13 17 23;          /* #0D1117 */
+    --color-surface: 22 27 34;        /* #161B22 */
+    --color-elevated: 33 38 45;       /* #21262D */
+    --color-hover: 48 54 61;          /* #30363D */
+    --color-border: 48 54 61;         /* #30363D */
+    --color-muted: 139 148 158;       /* #8B949E — AA on surface */
+    --color-foreground: 230 237 243;  /* #E6EDF3 — soft white */
+    --color-overlay: 1 4 9;           /* blue-black, not pure #000 */
+    --color-ring: 129 140 248;
+    --color-error: 248 113 113;
+    --color-disabled-bg: 33 38 45;
+    --color-disabled-fg: 110 118 129;
+
+    --color-chart-grid: 48 54 61;
+    --color-chart-axis: 139 148 158;
+    --color-chart-label: 139 148 158;
+    --color-chart-tooltip-bg: 33 38 45;
+    --color-chart-tooltip-border: 48 54 61;
+    --color-chart-tooltip-text: 230 237 243;
+    --color-chart-legend: 139 148 158;
+
+    --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.32), 0 4px 12px rgb(0 0 0 / 0.22);
+    --shadow-card-hover: 0 0 0 1px rgb(255 255 255 / 0.08), 0 8px 24px rgb(0 0 0 / 0.45);
+    --shadow-navbar: 0 1px 0 rgb(255 255 255 / 0.06), 0 1px 8px rgb(0 0 0 / 0.28);
+    --shadow-dropdown: 0 0 0 1px rgb(255 255 255 / 0.07), 0 16px 48px rgb(0 0 0 / 0.52);
+    --shadow-input: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 0 0 1px rgb(255 255 255 / 0.04);
   }
 
   html {
@@ -37,12 +92,147 @@
   }
 
   body {
-    @apply bg-canvas text-foreground min-h-screen font-sans;
+    @apply bg-canvas text-foreground min-h-screen font-sans transition-colors duration-300;
+  }
+
+  select,
+  option {
+    @apply bg-surface text-foreground;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-ring) / 0.5);
+    outline-offset: 2px;
   }
 }
-/* Minimal modern scrollbar */
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-border bg-surface transition-shadow duration-200;
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-interactive {
+    @apply card;
+  }
+
+  .card-interactive:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .input-field {
+    @apply bg-surface border border-border text-foreground placeholder:text-muted
+      focus:outline-none focus:ring-2 focus:ring-ring/35 focus:border-primary/50 transition-all;
+    box-shadow: var(--shadow-input);
+  }
+
+  .navbar-shell {
+    @apply bg-surface/95 backdrop-blur-xl border-b border-border;
+    box-shadow: var(--shadow-navbar);
+  }
+
+  .sidebar-shell {
+    @apply bg-surface border-r border-border;
+    box-shadow: var(--shadow-navbar);
+  }
+
+  .dropdown-panel {
+    @apply bg-elevated border border-border rounded-2xl;
+    box-shadow: var(--shadow-dropdown);
+  }
+
+  .dialog-panel {
+    @apply bg-surface border border-border rounded-2xl;
+    box-shadow: var(--shadow-dropdown);
+  }
+
+  .table-row-hover {
+    @apply hover:bg-hover transition-colors;
+  }
+
+  .table-header {
+    @apply bg-elevated/90 border-b border-border text-muted text-xs font-semibold uppercase tracking-wide;
+  }
+
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-primary text-primary-foreground font-medium
+      transition-all hover:brightness-110 active:scale-[0.98] focus-ring
+      disabled:bg-disabled disabled:text-disabled-foreground disabled:cursor-not-allowed
+      disabled:pointer-events-none disabled:opacity-100 disabled:brightness-100 disabled:shadow-none;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-surface border border-border text-foreground font-medium
+      transition-all hover:bg-hover active:scale-[0.98] focus-ring
+      disabled:bg-disabled disabled:text-disabled-foreground disabled:cursor-not-allowed
+      disabled:pointer-events-none disabled:opacity-100 disabled:border-border/60;
+    box-shadow: var(--shadow-card);
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg text-muted font-medium
+      transition-colors hover:bg-hover hover:text-foreground focus-ring
+      disabled:text-disabled-foreground disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-100;
+  }
+
+  .skeleton {
+    @apply rounded-lg;
+    background: linear-gradient(
+      90deg,
+      rgb(var(--color-elevated)) 0%,
+      rgb(var(--color-hover) / 0.9) 50%,
+      rgb(var(--color-elevated)) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  }
+
+  .skeleton-text {
+    @apply skeleton h-3 w-full;
+  }
+
+  .skeleton-block {
+    @apply skeleton;
+  }
+
+  .nav-item-active {
+    @apply flex items-center gap-3 px-3 py-2 text-sm rounded-r-lg border-l-2 border-primary
+      bg-primary/15 text-primary font-medium;
+  }
+
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2 text-sm rounded-r-lg border-l-2 border-transparent
+      text-muted hover:text-foreground hover:bg-hover transition-colors;
+  }
+
+  .notification-unread {
+    @apply bg-primary/10 border border-primary/20;
+  }
+
+  .pagination-btn {
+    @apply px-4 py-2 rounded-lg bg-surface border border-border text-sm text-foreground
+      hover:bg-hover focus-ring transition-all
+      disabled:bg-disabled disabled:text-disabled-foreground disabled:cursor-not-allowed disabled:pointer-events-none;
+    box-shadow: var(--shadow-card);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -50,22 +240,16 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgb(var(--color-border) / 0.9);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgb(var(--color-muted) / 0.55);
 }
 
-/* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.1) transparent;
+  scrollbar-color: rgb(var(--color-border) / 0.9) transparent;
 }
 
-select,
-option {
-  background-color: #0f172a;
-  color: white;
-}

@@ -135,7 +135,7 @@ export function CSVImportModal({ onClose, onSuccess }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-overlay/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
           onClick={handleClose}
         >
           <motion.div
@@ -143,15 +143,15 @@ export function CSVImportModal({ onClose, onSuccess }) {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="w-full max-w-lg bg-[#1a1a1a] border border-white/[0.08] rounded-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl"
+            className="w-full max-w-lg bg-surface border border-border rounded-2xl shadow-dropdown max-h-[85vh] flex flex-col overflow-hidden shadow-dropdown"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/[0.08] shrink-0">
-              <h2 className="text-xl font-semibold text-white">Import Transactions</h2>
+            <div className="flex items-center justify-between p-6 border-b border-border shrink-0">
+              <h2 className="text-xl font-semibold text-foreground">Import Transactions</h2>
               <button
                 onClick={handleClose}
-                className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="p-2 text-muted hover:text-foreground hover:bg-hover rounded-lg transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -164,8 +164,8 @@ export function CSVImportModal({ onClose, onSuccess }) {
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
                       step >= stepNumber
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-white/10 text-gray-500'
+                        ? 'btn-primary text-primary-foreground'
+                        : 'bg-elevated text-muted'
                     }`}
                   >
                     {stepNumber}
@@ -173,7 +173,7 @@ export function CSVImportModal({ onClose, onSuccess }) {
                   {stepNumber < 4 && (
                     <div
                       className={`w-8 h-0.5 mx-2 transition-all ${
-                        step > stepNumber ? 'bg-indigo-600' : 'bg-white/10'
+                        step > stepNumber ? 'bg-primary' : 'bg-elevated'
                       }`}
                     />
                   )}
@@ -186,26 +186,26 @@ export function CSVImportModal({ onClose, onSuccess }) {
               {/* Step 1: Upload */}
               {step === 1 && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-white mb-2">Upload CSV File</h3>
+                  <h3 className="text-lg font-medium text-foreground mb-2">Upload CSV File</h3>
                   <div
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
                       isDragging
-                        ? 'border-indigo-500 bg-indigo-500/10'
-                        : 'border-white/20 bg-white/5 hover:border-white/40'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border bg-hover hover:border-border'
                     }`}
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-white font-medium mb-2">
+                    <Upload className="w-12 h-12 text-muted mx-auto mb-4" />
+                    <p className="text-foreground font-medium mb-2">
                       Drop your CSV file here
                     </p>
-                    <p className="text-gray-400 text-sm mb-4">
+                    <p className="text-muted text-sm mb-4">
                       or click to browse
                     </p>
-                    <p className="text-gray-500 text-xs">
+                    <p className="text-muted text-xs">
                       Maximum file size: 5MB
                     </p>
                   </div>
@@ -222,12 +222,12 @@ export function CSVImportModal({ onClose, onSuccess }) {
               {/* Step 2: Preview */}
               {step === 2 && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-white mb-2">Preview</h3>
-                  <div className="bg-[#0f0f0f] rounded-lg p-4">
+                  <h3 className="text-lg font-medium text-foreground mb-2">Preview</h3>
+                  <div className="bg-surface rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <FileText className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-400">{selectedFile?.name}</span>
-                      <span className="text-xs text-gray-500">
+                      <FileText className="w-4 h-4 text-muted" />
+                      <span className="text-sm text-muted">{selectedFile?.name}</span>
+                      <span className="text-xs text-muted">
                         ({csvData.length + 1} rows)
                       </span>
                     </div>
@@ -236,9 +236,9 @@ export function CSVImportModal({ onClose, onSuccess }) {
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="border-b border-white/10">
+                          <tr className="border-b border-border">
                             {headers.map((header, index) => (
-                              <th key={index} className="text-left p-2 text-gray-400 font-medium">
+                              <th key={index} className="text-left p-2 text-muted font-medium">
                                 {header}
                               </th>
                             ))}
@@ -246,9 +246,9 @@ export function CSVImportModal({ onClose, onSuccess }) {
                         </thead>
                         <tbody>
                           {csvData.map((row, rowIndex) => (
-                            <tr key={rowIndex} className="border-b border-white/5">
+                            <tr key={rowIndex} className="border-b border-border/50">
                               {row.map((cell, cellIndex) => (
-                                <td key={cellIndex} className="p-2 text-gray-300">
+                                <td key={cellIndex} className="p-2 text-muted">
                                   {cell || '-'}
                                 </td>
                               ))}
@@ -262,14 +262,14 @@ export function CSVImportModal({ onClose, onSuccess }) {
                   <div className="flex justify-between pt-2">
                     <button
                       onClick={() => setStep(1)}
-                      className="px-4 py-2 text-gray-400 hover:text-white transition-all flex items-center gap-2"
+                      className="px-4 py-2 text-muted hover:text-foreground transition-all flex items-center gap-2"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       Back
                     </button>
                     <button
                       onClick={() => setStep(3)}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all flex items-center gap-2"
+                      className="btn-primary px-4 py-2 gap-2"
                     >
                       Next
                       <ArrowRight className="w-4 h-4" />
@@ -281,18 +281,18 @@ export function CSVImportModal({ onClose, onSuccess }) {
               {/* Step 3: Map Columns */}
               {step === 3 && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-white mb-2">Map Columns</h3>
-                  <p className="text-gray-400 text-sm mb-4">
+                  <h3 className="text-lg font-medium text-foreground mb-2">Map Columns</h3>
+                  <p className="text-muted text-sm mb-4">
                     Select which CSV column corresponds to each field
                   </p>
                   
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-4">
-                      <label className="text-sm text-gray-300">Amount *</label>
+                      <label className="text-sm text-muted">Amount *</label>
                       <select
                         value={columnMapping.amount}
                         onChange={(e) => handleColumnMappingChange('amount', e.target.value)}
-                        className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 min-w-[160px]"
+                        className="input-field rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50 min-w-[160px]"
                       >
                         <option value="">Select column</option>
                         {headers.map((header, index) => (
@@ -304,11 +304,11 @@ export function CSVImportModal({ onClose, onSuccess }) {
                     </div>
                     
                     <div className="flex items-center justify-between gap-4">
-                      <label className="text-sm text-gray-300">Type *</label>
+                      <label className="text-sm text-muted">Type *</label>
                       <select
                         value={columnMapping.type}
                         onChange={(e) => handleColumnMappingChange('type', e.target.value)}
-                        className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 min-w-[160px]"
+                        className="input-field rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50 min-w-[160px]"
                       >
                         <option value="">Select column</option>
                         {headers.map((header, index) => (
@@ -320,11 +320,11 @@ export function CSVImportModal({ onClose, onSuccess }) {
                     </div>
                     
                     <div className="flex items-center justify-between gap-4">
-                      <label className="text-sm text-gray-300">Category *</label>
+                      <label className="text-sm text-muted">Category *</label>
                       <select
                         value={columnMapping.category}
                         onChange={(e) => handleColumnMappingChange('category', e.target.value)}
-                        className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 min-w-[160px]"
+                        className="input-field rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50 min-w-[160px]"
                       >
                         <option value="">Select column</option>
                         {headers.map((header, index) => (
@@ -336,11 +336,11 @@ export function CSVImportModal({ onClose, onSuccess }) {
                     </div>
                     
                     <div className="flex items-center justify-between gap-4">
-                      <label className="text-sm text-gray-300">Date *</label>
+                      <label className="text-sm text-muted">Date *</label>
                       <select
                         value={columnMapping.date}
                         onChange={(e) => handleColumnMappingChange('date', e.target.value)}
-                        className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 min-w-[160px]"
+                        className="input-field rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50 min-w-[160px]"
                       >
                         <option value="">Select column</option>
                         {headers.map((header, index) => (
@@ -352,11 +352,11 @@ export function CSVImportModal({ onClose, onSuccess }) {
                     </div>
                     
                     <div className="flex items-center justify-between gap-4">
-                      <label className="text-sm text-gray-300">Notes</label>
+                      <label className="text-sm text-muted">Notes</label>
                       <select
                         value={columnMapping.notes}
                         onChange={(e) => handleColumnMappingChange('notes', e.target.value)}
-                        className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 min-w-[160px]"
+                        className="input-field rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50 min-w-[160px]"
                       >
                         <option value="">Select column</option>
                         {headers.map((header, index) => (
@@ -371,7 +371,7 @@ export function CSVImportModal({ onClose, onSuccess }) {
                   <div className="flex justify-between pt-2">
                     <button
                       onClick={() => setStep(2)}
-                      className="px-4 py-2 text-gray-400 hover:text-white transition-all flex items-center gap-2"
+                      className="px-4 py-2 text-muted hover:text-foreground transition-all flex items-center gap-2"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       Back
@@ -379,7 +379,7 @@ export function CSVImportModal({ onClose, onSuccess }) {
                     <button
                       onClick={() => setStep(4)}
                       disabled={!canProceedToStep3()}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="btn-primary px-4 py-2 gap-2 disabled:bg-disabled disabled:text-disabled-foreground disabled:cursor-not-allowed disabled:opacity-100 disabled:pointer-events-none"
                     >
                       Next
                       <ArrowRight className="w-4 h-4" />
@@ -393,20 +393,20 @@ export function CSVImportModal({ onClose, onSuccess }) {
                 <div className="space-y-4">
                   <div className="text-center">
                     <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-white mb-2">Ready to Import</h3>
-                    <p className="text-gray-400 text-sm mb-6">
+                    <h3 className="text-lg font-medium text-foreground mb-2">Ready to Import</h3>
+                    <p className="text-muted text-sm mb-6">
                       {csvData.length + 1} transactions will be imported
                     </p>
                   </div>
                   
-                  <div className="bg-[#0f0f0f] rounded-lg p-4 space-y-2">
-                    <div className="text-sm text-gray-400">
+                  <div className="bg-surface rounded-lg p-4 space-y-2">
+                    <div className="text-sm text-muted">
                       <strong>File:</strong> {selectedFile?.name}
                     </div>
-                    <div className="text-sm text-gray-400">
+                    <div className="text-sm text-muted">
                       <strong>Column Mapping:</strong>
                     </div>
-                    <div className="text-xs text-gray-500 space-y-1">
+                    <div className="text-xs text-muted space-y-1">
                       {Object.entries(columnMapping).map(([field, column]) => (
                         column && (
                           <div key={field}>
@@ -420,7 +420,7 @@ export function CSVImportModal({ onClose, onSuccess }) {
                   <div className="flex justify-between pt-2">
                     <button
                       onClick={() => setStep(3)}
-                      className="px-4 py-2 text-gray-400 hover:text-white transition-all flex items-center gap-2"
+                      className="px-4 py-2 text-muted hover:text-foreground transition-all flex items-center gap-2"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       Back
@@ -428,7 +428,7 @@ export function CSVImportModal({ onClose, onSuccess }) {
                     <button
                       onClick={handleImport}
                       disabled={importCSVMutation.isPending}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="btn-primary px-4 py-2 disabled:bg-disabled disabled:text-disabled-foreground disabled:cursor-not-allowed disabled:opacity-100 disabled:pointer-events-none"
                     >
                       {importCSVMutation.isPending ? 'Importing...' : 'Import Transactions'}
                     </button>

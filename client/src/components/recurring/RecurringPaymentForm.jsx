@@ -46,7 +46,7 @@ export function RecurringPaymentForm({ onClose, onSubmit }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-overlay/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         onClick={onClose}
       >
         <motion.div
@@ -54,20 +54,20 @@ export function RecurringPaymentForm({ onClose, onSubmit }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 8 }}
           transition={{ duration: 0.15 }}
-          className="w-full max-w-md bg-[#1a1a1a] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+          className="w-full max-w-md dropdown-panel shadow-dropdown overflow-hidden max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08] sticky top-0 bg-[#1a1a1a] z-10">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-elevated z-10">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
-                <RefreshCw className="w-4 h-4 text-indigo-400" />
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <RefreshCw className="w-4 h-4 text-primary" />
               </div>
-              <h2 className="text-lg font-semibold text-white">Add Recurring Payment</h2>
+              <h2 className="text-lg font-semibold text-foreground">Add Recurring Payment</h2>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-white/10 text-gray-500 hover:text-white transition-all"
+              className="p-2 rounded-lg hover:bg-hover text-muted hover:text-foreground transition-all"
             >
               <X className="w-4 h-4" />
             </button>
@@ -76,19 +76,19 @@ export function RecurringPaymentForm({ onClose, onSubmit }) {
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
+              <label className="block text-sm font-medium text-muted mb-2">Name</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., Netflix Subscription"
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all"
+                className="w-full px-4 py-2.5 input-field rounded-lg text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Type</label>
+              <label className="block text-sm font-medium text-muted mb-2">Type</label>
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -96,7 +96,7 @@ export function RecurringPaymentForm({ onClose, onSubmit }) {
                   className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
                     formData.type === 'expense'
                       ? 'bg-red-500 text-white'
-                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                      : 'bg-hover text-muted hover:bg-hover'
                   }`}
                 >
                   Expense
@@ -107,7 +107,7 @@ export function RecurringPaymentForm({ onClose, onSubmit }) {
                   className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
                     formData.type === 'income'
                       ? 'bg-green-500 text-white'
-                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                      : 'bg-hover text-muted hover:bg-hover'
                   }`}
                 >
                   Income
@@ -116,9 +116,9 @@ export function RecurringPaymentForm({ onClose, onSubmit }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Amount</label>
+              <label className="block text-sm font-medium text-muted mb-2">Amount</label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted" />
                 <input
                   type="number"
                   value={formData.amount}
@@ -126,20 +126,20 @@ export function RecurringPaymentForm({ onClose, onSubmit }) {
                   placeholder="0.00"
                   step="0.01"
                   min="0"
-                  className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 input-field rounded-lg text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Wallet</label>
+              <label className="block text-sm font-medium text-muted mb-2">Wallet</label>
               <div className="relative">
-                <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted" />
                 <select
                   value={formData.wallet}
                   onChange={(e) => setFormData({ ...formData, wallet: e.target.value })}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
+                  className="w-full pl-10 pr-4 py-2.5 input-field rounded-lg text-sm text-foreground focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all appearance-none cursor-pointer"
                   required
                 >
                   <option value="">Select wallet</option>
@@ -153,13 +153,13 @@ export function RecurringPaymentForm({ onClose, onSubmit }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
+              <label className="block text-sm font-medium text-muted mb-2">Category</label>
               <div className="relative">
-                <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted" />
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
+                  className="w-full pl-10 pr-4 py-2.5 input-field rounded-lg text-sm text-foreground focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all appearance-none cursor-pointer"
                   required
                 >
                   <option value="">Select category</option>
@@ -173,11 +173,11 @@ export function RecurringPaymentForm({ onClose, onSubmit }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Frequency</label>
+              <label className="block text-sm font-medium text-muted mb-2">Frequency</label>
               <select
                 value={formData.frequency}
                 onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
+                className="w-full px-4 py-2.5 input-field rounded-lg text-sm text-foreground focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all appearance-none cursor-pointer"
                 required
               >
                 <option value="daily">Daily</option>
@@ -188,28 +188,28 @@ export function RecurringPaymentForm({ onClose, onSubmit }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">First Due Date</label>
+              <label className="block text-sm font-medium text-muted mb-2">First Due Date</label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted" />
                 <input
                   type="date"
                   value={formData.nextDueDate}
                   onChange={(e) => setFormData({ ...formData, nextDueDate: e.target.value })}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 input-field rounded-lg text-sm text-foreground focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Reminder Days Before</label>
+              <label className="block text-sm font-medium text-muted mb-2">Reminder Days Before</label>
               <input
                 type="number"
                 value={formData.reminderDays}
                 onChange={(e) => setFormData({ ...formData, reminderDays: parseInt(e.target.value) || 0 })}
                 min="0"
                 max="90"
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all"
+                className="w-full px-4 py-2.5 input-field rounded-lg text-sm text-foreground focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all"
               />
             </div>
 
@@ -218,13 +218,13 @@ export function RecurringPaymentForm({ onClose, onSubmit }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-medium hover:bg-white/10 transition-all"
+                className="flex-1 px-4 py-2.5 rounded-lg bg-surface border border-border shadow-sm text-foreground text-sm font-medium hover:bg-hover transition-all"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium transition-all"
+                className="btn-primary flex-1 px-4 py-2.5 text-sm"
               >
                 Create
               </button>

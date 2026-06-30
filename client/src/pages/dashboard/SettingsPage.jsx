@@ -43,18 +43,18 @@ export default function SettingsPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-gray-500/10 flex items-center justify-center">
-            <Settings className="w-5 h-5 text-gray-400" />
+          <div className="w-10 h-10 rounded-xl bg-muted/10 flex items-center justify-center">
+            <Settings className="w-5 h-5 text-muted" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Settings</h1>
-            <p className="text-sm text-gray-400">Manage your account preferences</p>
+            <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+            <p className="text-sm text-muted">Manage your account preferences</p>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 border-b border-white/[0.08]">
+      <div className="mb-6 border-b border-border">
         <div className="flex gap-6">
           {tabs.map((tab) => {
             const Icon = tab.icon
@@ -64,8 +64,8 @@ export default function SettingsPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 pb-3 text-sm font-medium transition-colors relative ${
                   activeTab === tab.id
-                    ? 'text-white'
-                    : 'text-gray-500 hover:text-gray-300'
+                    ? 'text-foreground'
+                    : 'text-muted hover:text-foreground/70'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -73,7 +73,7 @@ export default function SettingsPage() {
                 {activeTab === tab.id && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
                   />
                 )}
               </button>
@@ -84,11 +84,11 @@ export default function SettingsPage() {
 
       {/* Content */}
       {isLoading ? (
-        <div className="p-8 rounded-xl bg-white/[0.03] border border-white/[0.08] animate-pulse">
-          <div className="h-8 bg-white/10 rounded w-1/3 mb-4" />
-          <div className="h-4 bg-white/10 rounded w-full mb-2" />
-          <div className="h-4 bg-white/10 rounded w-2/3 mb-4" />
-          <div className="h-8 bg-white/10 rounded w-1/4" />
+        <div className="p-8 rounded-xl card">
+          <div className="h-8 bg-border rounded w-1/3 mb-4" />
+          <div className="h-4 bg-border rounded w-full mb-2" />
+          <div className="h-4 bg-border rounded w-2/3 mb-4" />
+          <div className="h-8 bg-border rounded w-1/4" />
         </div>
       ) : (
         <>
@@ -117,7 +117,7 @@ export default function SettingsPage() {
       {/* Danger Zone */}
       <div className="mt-8 p-6 rounded-xl bg-red-500/5 border border-red-500/20">
         <h3 className="text-sm font-medium text-red-400 mb-2">Danger Zone</h3>
-        <p className="text-xs text-gray-400 mb-4">
+        <p className="text-xs text-muted mb-4">
           Once you log out, you'll need to sign in again to access your account.
         </p>
         <button

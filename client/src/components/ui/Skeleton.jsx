@@ -1,10 +1,8 @@
 import React from 'react';
 
-export const Skeleton = ({ className }) => {
+export const Skeleton = ({ className = '' }) => {
   return (
-    <div 
-      className={`bg-white/[0.06] animate-pulse rounded-lg ${className}`}
-    />
+    <div className={`skeleton ${className}`} aria-hidden="true" />
   );
 };
 
@@ -18,7 +16,7 @@ export const SkeletonChart = () => {
 
 export const SkeletonList = () => {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" aria-busy="true" aria-label="Loading">
       {[...Array(5)].map((_, i) => (
         <Skeleton key={i} className="h-12 w-full" />
       ))}

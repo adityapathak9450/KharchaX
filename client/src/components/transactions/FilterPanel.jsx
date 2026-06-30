@@ -76,7 +76,7 @@ const FilterPanel = ({ isOpen, onClose, filters, onApply }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+        className="fixed inset-0 bg-overlay/60 backdrop-blur-sm z-50"
         onClick={onClose}
       >
         <motion.div
@@ -84,15 +84,15 @@ const FilterPanel = ({ isOpen, onClose, filters, onApply }) => {
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="fixed right-0 top-0 h-full w-80 bg-[#1a1a1a] border-l border-white/[0.08]"
+          className="fixed right-0 top-0 h-full w-80 bg-elevated border-l border-border"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-white/[0.08]">
-            <h2 className="text-lg font-semibold text-white">Filters</h2>
+          <div className="flex items-center justify-between p-6 border-b border-border">
+            <h2 className="text-lg font-semibold text-foreground">Filters</h2>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+              className="p-2 text-muted hover:text-foreground hover:bg-hover rounded-lg transition-all"
             >
               <X className="w-4 h-4" />
             </button>
@@ -102,7 +102,7 @@ const FilterPanel = ({ isOpen, onClose, filters, onApply }) => {
           <div className="p-6 space-y-6 overflow-y-auto h-full pb-32">
             {/* Date Range */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-3">
+              <label className="block text-sm font-medium text-muted mb-3">
                 <Calendar className="inline w-4 h-4 mr-2" />
                 Date Range
               </label>
@@ -111,14 +111,14 @@ const FilterPanel = ({ isOpen, onClose, filters, onApply }) => {
                   type="date"
                   value={localFilters.startDate}
                   onChange={(e) => setLocalFilters(prev => ({ ...prev, startDate: e.target.value }))}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                  className="w-full input-field rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
                   placeholder="Start date"
                 />
                 <input
                   type="date"
                   value={localFilters.endDate}
                   onChange={(e) => setLocalFilters(prev => ({ ...prev, endDate: e.target.value }))}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                  className="w-full input-field rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
                   placeholder="End date"
                 />
               </div>
@@ -126,7 +126,7 @@ const FilterPanel = ({ isOpen, onClose, filters, onApply }) => {
 
             {/* Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-3">Type</label>
+              <label className="block text-sm font-medium text-muted mb-3">Type</label>
               <div className="space-y-2">
                 {['', 'income', 'expense'].map((type) => (
                   <label key={type} className="flex items-center gap-3 cursor-pointer">
@@ -136,9 +136,9 @@ const FilterPanel = ({ isOpen, onClose, filters, onApply }) => {
                       value={type}
                       checked={localFilters.type === type}
                       onChange={(e) => setLocalFilters(prev => ({ ...prev, type: e.target.value }))}
-                      className="w-4 h-4 text-indigo-600 bg-white/5 border-white/10 focus:ring-indigo-500 focus:ring-0"
+                      className="w-4 h-4 text-primary bg-hover border-border focus:ring-ring focus:ring-0"
                     />
-                    <span className="text-sm text-white">
+                    <span className="text-sm text-foreground">
                       {type === '' ? 'All' : type.charAt(0).toUpperCase() + type.slice(1)}
                     </span>
                   </label>
@@ -148,7 +148,7 @@ const FilterPanel = ({ isOpen, onClose, filters, onApply }) => {
 
             {/* Categories */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-3">Categories</label>
+              <label className="block text-sm font-medium text-muted mb-3">Categories</label>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {categories.map((category) => (
                   <label key={category._id} className="flex items-center gap-3 cursor-pointer">
@@ -156,14 +156,14 @@ const FilterPanel = ({ isOpen, onClose, filters, onApply }) => {
                       type="checkbox"
                       checked={localFilters.category.includes(category._id)}
                       onChange={() => handleCategoryToggle(category._id)}
-                      className="w-4 h-4 text-indigo-600 bg-white/5 border-white/10 rounded focus:ring-indigo-500 focus:ring-0"
+                      className="w-4 h-4 text-primary bg-hover border-border rounded focus:ring-ring focus:ring-0"
                     />
                     <div className="flex items-center gap-2">
                       <div
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: category.color }}
                       />
-                      <span className="text-sm text-white">{category.name}</span>
+                      <span className="text-sm text-foreground">{category.name}</span>
                     </div>
                   </label>
                 ))}
@@ -172,7 +172,7 @@ const FilterPanel = ({ isOpen, onClose, filters, onApply }) => {
 
             {/* Wallets */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-3">Wallets</label>
+              <label className="block text-sm font-medium text-muted mb-3">Wallets</label>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {wallets.map((wallet) => (
                   <label key={wallet._id} className="flex items-center gap-3 cursor-pointer">
@@ -180,11 +180,11 @@ const FilterPanel = ({ isOpen, onClose, filters, onApply }) => {
                       type="checkbox"
                       checked={localFilters.wallet.includes(wallet._id)}
                       onChange={() => handleWalletToggle(wallet._id)}
-                      className="w-4 h-4 text-indigo-600 bg-white/5 border-white/10 rounded focus:ring-indigo-500 focus:ring-0"
+                      className="w-4 h-4 text-primary bg-hover border-border rounded focus:ring-ring focus:ring-0"
                     />
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-white">{wallet.name}</span>
-                      <span className="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">
+                      <span className="text-sm text-foreground">{wallet.name}</span>
+                      <span className="text-xs text-muted bg-elevated px-2 py-0.5 rounded-full">
                         {wallet.type}
                       </span>
                     </div>
@@ -195,7 +195,7 @@ const FilterPanel = ({ isOpen, onClose, filters, onApply }) => {
 
             {/* Amount Range */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-3">
+              <label className="block text-sm font-medium text-muted mb-3">
                 <DollarSign className="inline w-4 h-4 mr-2" />
                 Amount Range
               </label>
@@ -204,14 +204,14 @@ const FilterPanel = ({ isOpen, onClose, filters, onApply }) => {
                   type="number"
                   value={localFilters.minAmount}
                   onChange={(e) => setLocalFilters(prev => ({ ...prev, minAmount: e.target.value }))}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                  className="w-full input-field rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
                   placeholder="Min amount"
                 />
                 <input
                   type="number"
                   value={localFilters.maxAmount}
                   onChange={(e) => setLocalFilters(prev => ({ ...prev, maxAmount: e.target.value }))}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                  className="w-full input-field rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
                   placeholder="Max amount"
                 />
               </div>
@@ -219,7 +219,7 @@ const FilterPanel = ({ isOpen, onClose, filters, onApply }) => {
 
             {/* Tags */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-3">
+              <label className="block text-sm font-medium text-muted mb-3">
                 <TagIcon className="inline w-4 h-4 mr-2" />
                 Tags
               </label>
@@ -227,25 +227,25 @@ const FilterPanel = ({ isOpen, onClose, filters, onApply }) => {
                 type="text"
                 value={localFilters.tags}
                 onChange={(e) => setLocalFilters(prev => ({ ...prev, tags: e.target.value }))}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                className="w-full input-field rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
                 placeholder="Search tags (comma separated)"
               />
             </div>
           </div>
 
           {/* Footer */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 bg-[#1a1a1a] border-t border-white/[0.08]">
+          <div className="absolute bottom-0 left-0 right-0 p-6 bg-elevated border-t border-border">
             <div className="flex gap-3">
               <button
                 onClick={handleReset}
-                className="flex-1 py-2 px-4 bg-white/5 text-gray-400 rounded-lg hover:bg-white/10 transition-all text-sm font-medium flex items-center justify-center gap-2"
+                className="flex-1 py-2 px-4 bg-hover text-muted rounded-lg hover:bg-hover transition-all text-sm font-medium flex items-center justify-center gap-2"
               >
                 <RotateCcw className="w-4 h-4" />
                 Reset
               </button>
               <button
                 onClick={handleApply}
-                className="flex-1 py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all text-sm font-medium"
+                className="btn-primary flex-1 py-2 px-4 text-sm"
               >
                 Apply Filters ({getActiveFilterCount()})
               </button>

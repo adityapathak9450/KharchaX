@@ -43,6 +43,8 @@ import { BudgetProgress } from '../../components/dashboard/BudgetProgress'
 
 import { TransactionForm } from '../../components/transactions/TransactionForm'
 import { CreateWalletModal } from '../../components/wallets/CreateWalletModal'
+import { useChartTheme } from '../../hooks/useChartTheme'
+import { STATUS } from '../../lib/designTokens'
 
 export default function DashboardHome() {
   const [timeRange, setTimeRange] = useState('30d')
@@ -72,6 +74,7 @@ export default function DashboardHome() {
   const [showWalletModal, setShowWalletModal] = useState(false)
 
   const navigate = useNavigate()
+  const chart = useChartTheme()
 
   /*
     ========================================================
@@ -269,11 +272,11 @@ export default function DashboardHome() {
 
 <div className="flex items-center justify-between">
   <div>
-    <h1 className="text-2xl font-bold text-white">
+    <h1 className="text-2xl font-bold text-foreground">
       Dashboard
     </h1>
 
-    <p className="text-gray-400 mt-1">
+    <p className="text-muted mt-1">
       Welcome back! Here's your financial overview.
     </p>
   </div>
@@ -346,9 +349,9 @@ export default function DashboardHome() {
 
         {/* MONTHLY TREND */}
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+        <div className="card p-6">
 
-          <h3 className="text-lg font-semibold text-white mb-4">
+          <h3 className="text-lg font-semibold text-foreground mb-4">
             Income vs Expenses
           </h3>
 
@@ -356,39 +359,25 @@ export default function DashboardHome() {
 
             <LineChart data={monthlyTrend?.trend || []}>
 
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#374151"
-              />
+              <CartesianGrid {...chart.gridProps} />
 
-              <XAxis
-                dataKey="month"
-                stroke="#9CA3AF"
-              />
+              <XAxis dataKey="month" {...chart.axisProps} />
 
-              <YAxis stroke="#9CA3AF" />
+              <YAxis {...chart.yAxisProps} />
 
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#1F2937',
-                  border: '1px solid #374151'
-                }}
-                labelStyle={{
-                  color: '#F3F4F6'
-                }}
-              />
+              <Tooltip {...chart.tooltipProps} />
 
               <Line
                 type="monotone"
                 dataKey="income"
-                stroke="#10B981"
+                stroke={STATUS.income}
                 strokeWidth={2}
               />
 
               <Line
                 type="monotone"
                 dataKey="expenses"
-                stroke="#EF4444"
+                stroke={STATUS.expense}
                 strokeWidth={2}
               />
 
@@ -399,9 +388,9 @@ export default function DashboardHome() {
 
         {/* CATEGORY BREAKDOWN */}
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+        <div className="card p-6">
 
-          <h3 className="text-lg font-semibold text-white mb-4">
+          <h3 className="text-lg font-semibold text-foreground mb-4">
             Spending by Category
           </h3>
 
@@ -428,15 +417,7 @@ export default function DashboardHome() {
 
               </Pie>
 
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#1F2937',
-                  border: '1px solid #374151'
-                }}
-                labelStyle={{
-                  color: '#F3F4F6'
-                }}
-              />
+              <Tooltip {...chart.tooltipProps} />
 
             </PieChart>
 
@@ -453,17 +434,17 @@ export default function DashboardHome() {
 
         <div className="lg:col-span-2">
 
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+          <div className="card p-6">
 
             <div className="flex items-center justify-between mb-4">
 
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-lg font-semibold text-foreground">
                 Wallets
               </h3>
 
               <button
                 onClick={() => setShowWalletModal(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="btn-primary px-3 py-2 gap-2"
               >
                 <Plus className="w-4 h-4" />
 
@@ -487,11 +468,11 @@ export default function DashboardHome() {
 
         {/* BUDGETS */}
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+        <div className="card p-6">
 
           <div className="flex items-center justify-between mb-4">
 
-            <h3 className="text-lg font-semibold text-white">
+            <h3 className="text-lg font-semibold text-foreground">
               Budget Status
             </h3>
 
@@ -525,11 +506,11 @@ export default function DashboardHome() {
 
       {/* RECENT TRANSACTIONS */}
 
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+      <div className="card p-6">
 
         <div className="flex items-center justify-between mb-4">
 
-          <h3 className="text-lg font-semibold text-white">
+          <h3 className="text-lg font-semibold text-foreground">
             Recent Transactions
           </h3>
 
@@ -537,7 +518,7 @@ export default function DashboardHome() {
 
             <button
               onClick={() => setShowTransactionForm(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+              className="btn-primary px-3 py-2 text-sm gap-2"
             >
               <Plus className="w-4 h-4" />
 
@@ -546,7 +527,7 @@ export default function DashboardHome() {
 
             <button
               onClick={() => navigate('/dashboard/transactions')}
-              className="text-indigo-400 hover:text-indigo-300 text-sm"
+              className="text-primary hover:text-primary/80 text-sm"
             >
               View all
             </button>

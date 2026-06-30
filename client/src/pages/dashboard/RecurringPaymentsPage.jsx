@@ -136,19 +136,19 @@ export default function RecurringPaymentsPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-              <RefreshCw className="w-5 h-5 text-indigo-400" />
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <RefreshCw className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Recurring Payments</h1>
-              <p className="text-sm text-gray-400">
+              <h1 className="text-2xl font-bold text-foreground">Recurring Payments</h1>
+              <p className="text-sm text-muted">
                 {recurringPayments.length} payment{recurringPayments.length !== 1 ? 's' : ''}
               </p>
             </div>
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium transition-all"
+            className="btn-primary px-4 py-2 text-sm gap-2"
           >
             <Plus className="w-4 h-4" />
             <span>Add Recurring</span>
@@ -165,7 +165,7 @@ export default function RecurringPaymentsPage() {
               <p className="text-sm font-medium text-yellow-400">
                 {dueSoonPayments.length} payment{dueSoonPayments.length !== 1 ? 's' : ''} due soon
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted">
                 {dueSoonPayments.map(p => p.name).join(', ')}
               </p>
             </div>
@@ -180,8 +180,8 @@ export default function RecurringPaymentsPage() {
             onClick={() => setFilter('all')}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
               filter === 'all'
-                ? 'bg-indigo-500 text-white'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-hover text-muted hover:bg-hover'
             }`}
           >
             All
@@ -190,8 +190,8 @@ export default function RecurringPaymentsPage() {
             onClick={() => setFilter('active')}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
               filter === 'active'
-                ? 'bg-indigo-500 text-white'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-hover text-muted hover:bg-hover'
             }`}
           >
             Active
@@ -200,18 +200,18 @@ export default function RecurringPaymentsPage() {
             onClick={() => setFilter('paused')}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
               filter === 'paused'
-                ? 'bg-indigo-500 text-white'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-hover text-muted hover:bg-hover'
             }`}
           >
             Paused
           </button>
         </div>
-        <div className="h-6 w-px bg-white/10" />
+        <div className="h-6 w-px bg-elevated" />
         <select
           value={frequencyFilter}
           onChange={(e) => setFrequencyFilter(e.target.value)}
-          className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-indigo-500/50"
+          className="px-3 py-1.5 rounded-lg input-field text-sm text-foreground focus:outline-none focus:border-primary/50"
         >
           <option value="all">All Frequencies</option>
           <option value="daily">Daily</option>
@@ -225,25 +225,25 @@ export default function RecurringPaymentsPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="p-6 rounded-xl bg-white/5 border border-white/10 animate-pulse">
-              <div className="h-4 bg-white/10 rounded w-3/4 mb-3" />
-              <div className="h-3 bg-white/10 rounded w-1/2 mb-4" />
-              <div className="h-8 bg-white/10 rounded w-full" />
+            <div key={i} className="card p-6">
+              <div className="h-4 bg-elevated rounded w-3/4 mb-3" />
+              <div className="h-3 bg-elevated rounded w-1/2 mb-4" />
+              <div className="h-8 bg-elevated rounded w-full" />
             </div>
           ))}
         </div>
       ) : recurringPayments.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-            <RefreshCw className="w-8 h-8 text-gray-600" />
+          <div className="w-16 h-16 rounded-2xl bg-hover flex items-center justify-center mb-4">
+            <RefreshCw className="w-8 h-8 text-muted" />
           </div>
-          <h3 className="text-lg font-medium text-white mb-1">No recurring payments</h3>
-          <p className="text-sm text-gray-500 mb-4">
+          <h3 className="text-lg font-medium text-foreground mb-1">No recurring payments</h3>
+          <p className="text-sm text-muted mb-4">
             Set up recurring payments to automate your finances
           </p>
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium transition-all"
+            className="btn-primary px-4 py-2 text-sm gap-2"
           >
             <Plus className="w-4 h-4" />
             <span>Add Recurring Payment</span>

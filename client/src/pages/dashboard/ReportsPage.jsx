@@ -119,15 +119,15 @@ const handleDownload = async (report) => {
               <FileText className="w-5 h-5 text-blue-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Reports</h1>
-              <p className="text-sm text-gray-400">
+              <h1 className="text-2xl font-bold text-foreground">Reports</h1>
+              <p className="text-sm text-muted">
                 {reports?.length || 0} report{reports?.length !== 1 ? 's' : ''}
               </p>
             </div>
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium transition-all"
+            className="btn-primary px-4 py-2 text-sm gap-2"
           >
             <Plus className="w-4 h-4" />
             <span>Generate Report</span>
@@ -138,13 +138,13 @@ const handleDownload = async (report) => {
       {/* Filters */}
       <div className="mb-6 flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-500" />
-          <span className="text-sm text-gray-400">Filter:</span>
+          <Filter className="w-4 h-4 text-muted" />
+          <span className="text-sm text-muted">Filter:</span>
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-indigo-500/50"
+          className="px-3 py-1.5 rounded-lg input-field text-sm text-foreground focus:outline-none focus:border-primary/50"
         >
           <option value="all">All Status</option>
           <option value="pending">Pending</option>
@@ -154,7 +154,7 @@ const handleDownload = async (report) => {
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-indigo-500/50"
+          className="px-3 py-1.5 rounded-lg input-field text-sm text-foreground focus:outline-none focus:border-primary/50"
         >
           <option value="all">All Types</option>
           <option value="monthly">Monthly</option>
@@ -169,25 +169,25 @@ const handleDownload = async (report) => {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="p-6 rounded-xl bg-white/5 border border-white/10 animate-pulse">
-              <div className="h-4 bg-white/10 rounded w-3/4 mb-3" />
-              <div className="h-3 bg-white/10 rounded w-1/2 mb-4" />
-              <div className="h-8 bg-white/10 rounded w-full" />
+            <div key={i} className="card p-6">
+              <div className="h-4 bg-elevated rounded w-3/4 mb-3" />
+              <div className="h-3 bg-elevated rounded w-1/2 mb-4" />
+              <div className="h-8 bg-elevated rounded w-full" />
             </div>
           ))}
         </div>
       ) : filteredReports.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-            <FileText className="w-8 h-8 text-gray-600" />
+          <div className="w-16 h-16 rounded-2xl bg-hover flex items-center justify-center mb-4">
+            <FileText className="w-8 h-8 text-muted" />
           </div>
-          <h3 className="text-lg font-medium text-white mb-1">No reports</h3>
-          <p className="text-sm text-gray-500 mb-4">
+          <h3 className="text-lg font-medium text-foreground mb-1">No reports</h3>
+          <p className="text-sm text-muted mb-4">
             Generate your first report to get started
           </p>
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium transition-all"
+            className="btn-primary px-4 py-2 text-sm gap-2"
           >
             <Plus className="w-4 h-4" />
             <span>Generate Report</span>

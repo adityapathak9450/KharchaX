@@ -44,7 +44,7 @@ export function ReportForm({ onClose, onSubmit }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-overlay/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         onClick={onClose}
       >
         <motion.div
@@ -52,20 +52,20 @@ export function ReportForm({ onClose, onSubmit }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 8 }}
           transition={{ duration: 0.15 }}
-          className="w-full max-w-md bg-[#1a1a1a] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden"
+          className="w-full max-w-md dropdown-panel shadow-dropdown overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
                 <FileText className="w-4 h-4 text-blue-400" />
               </div>
-              <h2 className="text-lg font-semibold text-white">Generate Report</h2>
+              <h2 className="text-lg font-semibold text-foreground">Generate Report</h2>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-white/10 text-gray-500 hover:text-white transition-all"
+              className="p-2 rounded-lg hover:bg-hover text-muted hover:text-foreground transition-all"
             >
               <X className="w-4 h-4" />
             </button>
@@ -74,11 +74,11 @@ export function ReportForm({ onClose, onSubmit }) {
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Report Type</label>
+              <label className="block text-sm font-medium text-muted mb-2">Report Type</label>
               <select
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
+                className="w-full px-4 py-2.5 input-field rounded-lg text-sm text-foreground focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all appearance-none cursor-pointer"
                 required
               >
                 <option value="monthly">Monthly Report</option>
@@ -91,13 +91,13 @@ export function ReportForm({ onClose, onSubmit }) {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Month</label>
+                <label className="block text-sm font-medium text-muted mb-2">Month</label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted" />
                   <select
                     value={formData.month}
                     onChange={(e) => setFormData({ ...formData, month: parseInt(e.target.value) })}
-                    className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
+                    className="w-full pl-10 pr-4 py-2.5 input-field rounded-lg text-sm text-foreground focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all appearance-none cursor-pointer"
                     disabled={formData.type === 'yearly'}
                   >
                     {months.map((m, i) => (
@@ -107,13 +107,13 @@ export function ReportForm({ onClose, onSubmit }) {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Year</label>
+                <label className="block text-sm font-medium text-muted mb-2">Year</label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted" />
                   <select
                     value={formData.year}
                     onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}
-                    className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
+                    className="w-full pl-10 pr-4 py-2.5 input-field rounded-lg text-sm text-foreground focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all appearance-none cursor-pointer"
                     required
                   >
                     {years.map((y) => (
@@ -125,11 +125,11 @@ export function ReportForm({ onClose, onSubmit }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Format</label>
+              <label className="block text-sm font-medium text-muted mb-2">Format</label>
               <select
                 value={formData.format}
                 onChange={(e) => setFormData({ ...formData, format: e.target.value })}
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
+                className="w-full px-4 py-2.5 input-field rounded-lg text-sm text-foreground focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all appearance-none cursor-pointer"
                 required
               >
                 <option value="pdf">PDF</option>
@@ -142,14 +142,14 @@ export function ReportForm({ onClose, onSubmit }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-medium hover:bg-white/10 transition-all"
+                className="flex-1 px-4 py-2.5 rounded-lg bg-surface border border-border shadow-sm text-foreground text-sm font-medium hover:bg-hover transition-all"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={mutation.isPending}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium transition-all disabled:opacity-50"
+                className="btn-primary flex-1 px-4 py-2.5 text-sm disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 disabled:cursor-not-allowed disabled:pointer-events-none"
               >
                 {mutation.isPending ? 'Generating...' : 'Generate'}
               </button>

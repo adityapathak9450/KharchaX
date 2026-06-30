@@ -27,7 +27,7 @@ export function InviteMemberModal({ onClose, onSubmit, wallets, mode = 'invite',
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-overlay/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         onClick={onClose}
       >
         <motion.div
@@ -35,22 +35,22 @@ export function InviteMemberModal({ onClose, onSubmit, wallets, mode = 'invite',
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 8 }}
           transition={{ duration: 0.15 }}
-          className="w-full max-w-md bg-[#1a1a1a] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden"
+          className="w-full max-w-md dropdown-panel shadow-dropdown overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
                 <Users className="w-4 h-4 text-purple-400" />
               </div>
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-semibold text-foreground">
                 {mode === 'create' ? 'Create Shared Wallet' : 'Invite Members'}
               </h2>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-white/10 text-gray-500 hover:text-white transition-all"
+              className="p-2 rounded-lg hover:bg-hover text-muted hover:text-foreground transition-all"
             >
               <X className="w-4 h-4" />
             </button>
@@ -61,25 +61,25 @@ export function InviteMemberModal({ onClose, onSubmit, wallets, mode = 'invite',
             {mode === 'create' && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Shared Wallet Name</label>
+                  <label className="block text-sm font-medium text-muted mb-2">Shared Wallet Name</label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="e.g., Family Expenses"
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all"
+                    className="w-full px-4 py-2.5 input-field rounded-lg text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Select Wallet</label>
+                  <label className="block text-sm font-medium text-muted mb-2">Select Wallet</label>
                   <div className="relative">
-                    <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <Wallet className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted" />
                     <select
                       value={formData.walletId}
                       onChange={(e) => setFormData({ ...formData, walletId: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
+                      className="w-full pl-10 pr-4 py-2.5 input-field rounded-lg text-sm text-foreground focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all appearance-none cursor-pointer"
                       required
                     >
                       <option value="">Select a wallet</option>
@@ -95,16 +95,16 @@ export function InviteMemberModal({ onClose, onSubmit, wallets, mode = 'invite',
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-muted mb-2">
                 {mode === 'create' ? 'Member Emails (Optional)' : 'Member Emails'}
               </label>
               <textarea
                 value={formData.memberEmails}
                 onChange={(e) => setFormData({ ...formData, memberEmails: e.target.value })}
                 placeholder="Enter emails separated by commas"
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all resize-none h-24"
+                className="w-full px-4 py-2.5 input-field rounded-lg text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/50 focus:bg-elevated transition-all resize-none h-24"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted mt-1">
                 Members will receive an invite code to join
               </p>
             </div>
@@ -115,14 +115,14 @@ export function InviteMemberModal({ onClose, onSubmit, wallets, mode = 'invite',
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting || isLoading}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-medium hover:bg-white/10 transition-all disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 rounded-lg bg-surface border border-border shadow-sm text-foreground text-sm font-medium hover:bg-hover transition-all disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 disabled:cursor-not-allowed disabled:pointer-events-none"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || isLoading}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium transition-all disabled:opacity-50"
+                className="btn-primary flex-1 px-4 py-2.5 text-sm disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 disabled:cursor-not-allowed disabled:pointer-events-none"
               >
                 {isSubmitting || isLoading ? 'Creating...' : (mode === 'create' ? 'Create' : 'Send Invites')}
               </button>

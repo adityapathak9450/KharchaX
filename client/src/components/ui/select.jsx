@@ -10,16 +10,13 @@ const SelectTrigger = React.forwardRef(
   ({ className = "", children, ...props }, ref) => (
     <SelectPrimitive.Trigger
       ref={ref}
-      className={`group flex h-10 w-full items-center justify-between rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 ${className}`}
+      className={`group flex h-10 w-full items-center justify-between rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground shadow-input focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary/50 transition-all ${className}`}
       {...props}
     >
-      {/* Left side (text) */}
       <span className="flex items-center gap-2">
         {children}
       </span>
-
-      {/* Right side icon */}
-      <ChevronDown className="h-4 w-4 text-gray-400 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+      <ChevronDown className="h-4 w-4 text-muted shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
     </SelectPrimitive.Trigger>
   )
 );
@@ -31,7 +28,7 @@ const SelectContent = React.forwardRef(
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         ref={ref}
-        className={`relative z-50 min-w-[8rem] overflow-hidden rounded-md border border-gray-700 bg-gray-900 text-white shadow-md ${className}`}
+        className={`relative z-50 min-w-[8rem] overflow-hidden rounded-lg dropdown-panel text-foreground ${className}`}
         {...props}
       >
         <SelectPrimitive.Viewport className="p-1">
@@ -46,7 +43,7 @@ const SelectItem = React.forwardRef(
   ({ className = "", children, ...props }, ref) => (
     <SelectPrimitive.Item
       ref={ref}
-      className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none hover:bg-indigo-500 ${className}`}
+      className={`relative flex w-full cursor-pointer select-none items-center rounded-md px-3 py-2 text-sm text-foreground outline-none transition-colors data-[highlighted]:bg-hover data-[highlighted]:text-foreground data-[state=checked]:bg-primary/15 data-[state=checked]:text-primary ${className}`}
       {...props}
     >
       <SelectPrimitive.ItemText>

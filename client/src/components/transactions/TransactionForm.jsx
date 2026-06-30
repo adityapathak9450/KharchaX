@@ -156,7 +156,7 @@ const onSubmit = (data) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/80"
+          className="absolute inset-0 bg-overlay/80"
           onClick={onClose}
         />
 
@@ -165,10 +165,10 @@ const onSubmit = (data) => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="relative w-full max-w-lg bg-gray-900 border border-white/10 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
+          className="relative w-full max-w-lg bg-surface border border-border rounded-2xl shadow-dropdown max-h-[90vh] overflow-y-auto"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-white/10">
+          <div className="flex items-center justify-between p-6 border-b border-border">
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-lg ${watchedType === 'income' ? 'bg-green-600/20' : 'bg-red-600/20'}`}>
                 {watchedType === 'income' ? (
@@ -178,10 +178,10 @@ const onSubmit = (data) => {
                 )}
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-xl font-semibold text-foreground">
                   {isEditing ? 'Edit Transaction' : 'Add Transaction'}
                 </h2>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-muted">
                   {isEditing ? 'Update transaction details' : 'Record a new transaction'}
                 </p>
               </div>
@@ -191,14 +191,14 @@ const onSubmit = (data) => {
                 <button
                   onClick={handleDelete}
                   disabled={deleteTransactionMutation.isLoading}
-                  className="p-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                  className="p-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 disabled:cursor-not-allowed disabled:pointer-events-none"
                 >
                   <X className="h-5 w-5" />
                 </button>
               )}
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="p-2 rounded-lg text-muted hover:text-foreground hover:bg-hover transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -209,7 +209,7 @@ const onSubmit = (data) => {
           <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
             {/* Transaction Type */}
             <div>
-              <label className="block text-sm font-medium text-white mb-3">Transaction Type</label>
+              <label className="block text-sm font-medium text-foreground mb-3">Transaction Type</label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
@@ -217,12 +217,12 @@ const onSubmit = (data) => {
                   className={`p-4 rounded-xl border transition-all ${
                     watchedType === 'income'
                       ? 'border-green-500 bg-green-500/10'
-                      : 'border-white/10 bg-white/5 hover:border-white/20'
+                      : 'border-border bg-hover hover:border-border'
                   }`}
                 >
                   <div className="flex items-center justify-center gap-2">
                     <ArrowUpRight className="h-5 w-5 text-green-400" />
-                    <span className="font-medium text-white">Income</span>
+                    <span className="font-medium text-foreground">Income</span>
                   </div>
                 </button>
                 <button
@@ -231,12 +231,12 @@ const onSubmit = (data) => {
                   className={`p-4 rounded-xl border transition-all ${
                     watchedType === 'expense'
                       ? 'border-red-500 bg-red-500/10'
-                      : 'border-white/10 bg-white/5 hover:border-white/20'
+                      : 'border-border bg-hover hover:border-border'
                   }`}
                 >
                   <div className="flex items-center justify-center gap-2">
                     <ArrowDownRight className="h-5 w-5 text-red-400" />
-                    <span className="font-medium text-white">Expense</span>
+                    <span className="font-medium text-foreground">Expense</span>
                   </div>
                 </button>
               </div>
@@ -247,7 +247,7 @@ const onSubmit = (data) => {
 
             {/* Amount */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Amount (₹)</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Amount (₹)</label>
               <div className="relative">
                 <input
                   type="number"
@@ -255,7 +255,7 @@ const onSubmit = (data) => {
                   step="0.01"
                   min="0.01"
                   {...register('amount', { valueAsNumber: true })}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 text-lg font-semibold"
+                  className="w-full px-4 py-3 input-field rounded-xl placeholder:text-muted focus:outline-none focus:border-primary/50 text-lg font-semibold"
                 />
               </div>
               {errors.amount && (
@@ -266,14 +266,14 @@ const onSubmit = (data) => {
             {/* Category and Wallet */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Category</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Category</label>
                 <select
                   {...register('category')}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500/50"
+                  className="w-full px-4 py-3 input-field rounded-xl focus:outline-none focus:border-primary/50"
                 >
-                  <option className="bg-gray-900 text-white" value="">Select category</option>
+                  <option className="bg-surface text-foreground" value="">Select category</option>
                   {categories.map((category) => (
-                    <option className="bg-gray-900 text-white" key={category._id} value={category._id}>
+                    <option className="bg-surface text-foreground" key={category._id} value={category._id}>
                       {category.name}
                     </option>
                   ))}
@@ -284,14 +284,14 @@ const onSubmit = (data) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Wallet</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Wallet</label>
                 <select
                   {...register('wallet')}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500/50"
+                  className="w-full px-4 py-3 input-field rounded-xl focus:outline-none focus:border-primary/50"
                 >
-                  <option className="bg-gray-900 text-white" value="">Select wallet</option>
+                  <option className="bg-surface text-foreground" value="">Select wallet</option>
                   {wallets.map((wallet) => (
-                    <option className="bg-gray-900 text-white" key={wallet._id} value={wallet._id}>
+                    <option className="bg-surface text-foreground" key={wallet._id} value={wallet._id}>
                       {wallet.name} ({formatCurrency(Number(wallet.balance) || 0)})
                     </option>
                   ))}
@@ -304,13 +304,13 @@ const onSubmit = (data) => {
 
             {/* Date */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Date</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Date</label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted" />
                 <input
                   type="date"
                   {...register('date')}
-                  className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500/50"
+                  className="w-full pl-10 pr-4 py-3 input-field rounded-xl focus:outline-none focus:border-primary/50"
                 />
               </div>
               {errors.date && (
@@ -320,12 +320,12 @@ const onSubmit = (data) => {
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Notes (Optional)</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Notes (Optional)</label>
               <textarea
                 placeholder="Add notes about this transaction..."
                 rows={3}
                 {...register('notes')}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 resize-none"
+                className="w-full px-4 py-3 input-field rounded-xl placeholder:text-muted focus:outline-none focus:border-primary/50 resize-none"
               />
               {errors.notes && (
                 <p className="mt-2 text-sm text-red-400">{errors.notes.message}</p>
@@ -334,7 +334,7 @@ const onSubmit = (data) => {
 
             {/* Tags */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Tags (Optional)</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Tags (Optional)</label>
               <div className="space-y-3">
                 {/* Add new tag */}
                 <div className="flex gap-2">
@@ -349,13 +349,13 @@ const onSubmit = (data) => {
                         handleAddTag(e)
                       }
                     }}
-                    className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50"
+                    className="flex-1 px-3 py-2 input-field rounded-lg text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/50"
                   />
                   <button
                     type="button"
                     onClick={handleAddTag}
                     disabled={!newTag.trim() || watchedTags.length >= 10}
-                    className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    className="btn-primary px-3 py-2 disabled:bg-disabled disabled:text-disabled-foreground disabled:cursor-not-allowed disabled:opacity-100 disabled:pointer-events-none text-sm"
                   >
                     Add
                   </button>
@@ -367,13 +367,13 @@ const onSubmit = (data) => {
                     {watchedTags.map((tag, index) => (
                       <span
                         key={`${tag}-${index}`}
-                        className="px-3 py-1 bg-indigo-600/20 text-indigo-400 rounded-full text-sm flex items-center gap-2"
+                        className="px-3 py-1 bg-primary/15 text-primary rounded-full text-sm flex items-center gap-2"
                       >
                         {tag}
                         <button
                           type="button"
                           onClick={() => handleRemoveTag(tag)}
-                          className="text-indigo-400 hover:text-indigo-300"
+                          className="text-primary hover:text-primary/80"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -392,14 +392,14 @@ const onSubmit = (data) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-colors"
+                className="btn-secondary flex-1 px-4 py-3 rounded-xl"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isLoading || isSubmitting}
-                className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary flex-1 px-4 py-3 rounded-xl disabled:bg-disabled disabled:text-disabled-foreground disabled:cursor-not-allowed disabled:opacity-100 disabled:pointer-events-none"
               >
                 {isLoading || isSubmitting ? 'Saving...' : (isEditing ? 'Update' : 'Add Transaction')}
               </button>
