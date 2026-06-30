@@ -69,3 +69,38 @@ option {
   background-color: #0f172a;
   color: white;
 }
+
+.shine {
+  position: absolute;
+
+  right: 120px;
+  bottom: 60px;
+
+  width: 500px;
+  height: 250px;
+
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(255,255,255,0.18) 50%,
+    transparent 80%
+  );
+
+  transform: rotate(-12deg);
+
+  filter: blur(20px);
+
+  animation: shine 6s infinite;
+
+  pointer-events:none;
+}
+
+@keyframes shine {
+  from {
+    transform: translateX(-200px) rotate(-12deg);
+  }
+
+  to {
+    transform: translateX(250px) rotate(-12deg);
+  }
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -48,13 +48,24 @@ const navGroups = [
 ];
 
 const Sidebar = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Logout failed:', error);
+      navigate('/', { replace: true });
+    }
+  };
 
   const getUserInitials = () => {
     if (!user?.name) return 'U';
     return user.name
       .split(' ')
-      .map(word => word[0])
+      .map((word) => word[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
@@ -69,17 +80,18 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       <div className="h-px bg-white/[0.08] mx-6" />
 
-      {/* Nav */}
+      {/* Navigation */}
       <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
         {navGroups.map((group, i) => (
           <div key={i}>
             <h3 className="text-xs text-gray-500 mb-2 px-3">{group.label}</h3>
+
             <div className="space-y-1">
               {group.items.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
-                 end={item.path === '/dashboard'}
+                  end={item.path === '/dashboard'}
                   onClick={onClose}
                   className={({ isActive }) =>
                     isActive
@@ -102,14 +114,15 @@ const Sidebar = ({ isOpen, onClose }) => {
           <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white">
             {getUserInitials()}
           </div>
+
           <div>
             <p className="text-sm text-white">{user?.name || 'User'}</p>
           </div>
         </div>
 
         <button
-          onClick={logout}
-          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-400 hover:text-red-400"
+          onClick={handleLogout}
+          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-400 transition-colors hover:text-red-400"
         >
           <LogOut className="w-4 h-4" />
           Logout
@@ -122,7 +135,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Click outside */}
+          {/* Overlay */}
           <div
             className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm"
             onClick={onClose}
@@ -133,7 +146,11 @@ const Sidebar = ({ isOpen, onClose }) => {
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
-            transition={{type: "tween",ease: "easeOut",duration: 0.25}}
+            transition={{
+              type: 'tween',
+              ease: 'easeOut',
+              duration: 0.25,
+            }}
             className="fixed top-0 left-0 h-full w-60 z-40"
           >
             {sidebarContent}

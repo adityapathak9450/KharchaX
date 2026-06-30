@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Settings, User, Mail, Lock, Bell, Globe, Moon, Sun, Save, LogOut } from 'lucide-react'
+import { Settings, User, Lock, LogOut } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { apiClient } from '../../lib/apiClient'
@@ -11,12 +12,23 @@ import { PreferencesSection } from '../../components/settings/PreferencesSection
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile')
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { user, logout } = useAuthStore()
 
+  const handleLogout = async () => {
+    try {
+      await logout()
+      navigate('/', { replace: true })
+    } catch (error) {
+      console.error('Logout failed:', error)
+      navigate('/', { replace: true })
+    }
+  }
+
   const { data: userData, isLoading } = useQuery({
     queryKey: ['user'],
-    queryFn: () => apiClient.get('/auth/me').then(res => res.data.data.user),
+    queryFn: () => apiClient.get('/auth/me').then((res) => res.data.data.user),
   })
 
   const updateProfileMutation = useMutation({
@@ -27,7 +39,7 @@ export default function SettingsPage() {
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to update profile')
-    }
+    },
   })
 
   const currentUser = userData || user
@@ -46,9 +58,12 @@ export default function SettingsPage() {
           <div className="w-10 h-10 rounded-xl bg-gray-500/10 flex items-center justify-center">
             <Settings className="w-5 h-5 text-gray-400" />
           </div>
+
           <div>
             <h1 className="text-2xl font-bold text-white">Settings</h1>
-            <p className="text-sm text-gray-400">Manage your account preferences</p>
+            <p className="text-sm text-gray-400">
+              Manage your account preferences
+            </p>
           </div>
         </div>
       </div>
@@ -58,11 +73,12 @@ export default function SettingsPage() {
         <div className="flex gap-6">
           {tabs.map((tab) => {
             const Icon = tab.icon
+
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 pb-3 text-sm font-medium transition-colors relative ${
+                className={`relative flex items-center gap-2 pb-3 text-sm font-medium transition-colors ${
                   activeTab === tab.id
                     ? 'text-white'
                     : 'text-gray-500 hover:text-gray-300'
@@ -70,6 +86,7 @@ export default function SettingsPage() {
               >
                 <Icon className="w-4 h-4" />
                 <span>{tab.label}</span>
+
                 {activeTab === tab.id && (
                   <motion.div
                     layoutId="activeTab"
@@ -100,9 +117,7 @@ export default function SettingsPage() {
             />
           )}
 
-          {activeTab === 'security' && (
-            <SecuritySection />
-          )}
+          {activeTab === 'security' && <SecuritySection />}
 
           {activeTab === 'preferences' && (
             <PreferencesSection
@@ -116,12 +131,16 @@ export default function SettingsPage() {
 
       {/* Danger Zone */}
       <div className="mt-8 p-6 rounded-xl bg-red-500/5 border border-red-500/20">
-        <h3 className="text-sm font-medium text-red-400 mb-2">Danger Zone</h3>
+        <h3 className="text-sm font-medium text-red-400 mb-2">
+          Danger Zone
+        </h3>
+
         <p className="text-xs text-gray-400 mb-4">
           Once you log out, you'll need to sign in again to access your account.
         </p>
+
         <button
-          onClick={logout}
+          onClick={handleLogout}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-all"
         >
           <LogOut className="w-4 h-4" />
