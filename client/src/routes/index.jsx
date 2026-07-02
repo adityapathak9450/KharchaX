@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { RouteSkeleton } from '../components/auth/RouteSkeleton'
 import { ProtectedRoute } from './ProtectedRoute'
 
+
 const LandingPage = lazy(() => import('../pages/LandingPage.jsx'))
 const LoginPage = lazy(() => import('../pages/auth/LoginPage.jsx'))
 const RegisterPage = lazy(() => import('../pages/auth/RegisterPage.jsx'))
@@ -22,6 +23,7 @@ const SharedWalletDetailPage = lazy(() => import('../pages/dashboard/SharedWalle
 const RecurringPaymentsPage = lazy(() => import('../pages/dashboard/RecurringPaymentsPage.jsx'))
 const ReportsPage = lazy(() => import('../pages/dashboard/ReportsPage.jsx'))
 const SettingsPage = lazy(() => import('../pages/dashboard/SettingsPage.jsx'))
+const NotFoundPage = lazy(() => import('../pages/NotFoundPage.jsx'))
 
 export function AppRouter() {
   return (
@@ -48,10 +50,11 @@ export function AppRouter() {
             <Route path="recurring" element={<RecurringPaymentsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="reports" element={<ReportsPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
   )

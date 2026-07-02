@@ -253,8 +253,7 @@
   scrollbar-color: rgb(var(--color-border) / 0.9) transparent;
 }
 
-<<<<<<< HEAD
-=======
+
 select,
 option {
   background-color: #0f172a;
@@ -295,4 +294,4 @@ option {
     transform: translateX(250px) rotate(-12deg);
   }
 }
->>>>>>> 14725bc393a94f20d71757ef3613e1cd09330412
+

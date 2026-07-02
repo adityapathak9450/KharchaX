@@ -20,7 +20,6 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 
-
 import {
   LineChart,
   Line,
@@ -48,6 +47,9 @@ import { STATUS } from '../../lib/designTokens'
 
 export default function DashboardHome() {
   const [timeRange, setTimeRange] = useState('30d')
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
+
   const getMonthsFromRange = (range) => {
     if (range === '7d') return 1
     if (range === '90d') return 3
@@ -76,30 +78,14 @@ export default function DashboardHome() {
   const navigate = useNavigate()
   const chart = useChartTheme()
 
-  /*
-    ========================================================
-    FETCH WALLETS
-    ========================================================
-  */
-
   const { data: wallets = [] } = useQuery({
     queryKey: ['wallets'],
     queryFn: async () => {
       const res = await apiClient.get('/wallets')
-
-      console.log('=== WALLETS API ===')
-      console.log(res.data)
-
       return res.data.data.wallets || []
     },
     refetchInterval: 30000
   })
-
-  /*
-    ========================================================
-    FETCH ALL TRANSACTIONS
-    ========================================================
-  */
 
   const { data: allTransactions = [] } = useQuery({
     queryKey: ['all-transactions', timeRange],
@@ -107,20 +93,10 @@ export default function DashboardHome() {
       const res = await apiClient.get('/transactions', {
         params: { limit: 1000, ...getDateRangeParams(timeRange) }
       })
-
-      console.log('=== TRANSACTIONS API ===')
-      console.log(res.data)
-
       return res.data.data.transactions || []
     },
     refetchInterval: 30000
   })
-
-  /*
-    ========================================================
-    FETCH RECENT TRANSACTIONS
-    ========================================================
-  */
 
   const { data: recentTransactions = [] } = useQuery({
     queryKey: ['recent-transactions', timeRange],
@@ -128,39 +104,19 @@ export default function DashboardHome() {
       const res = await apiClient.get('/transactions', {
         params: { limit: 5, ...getDateRangeParams(timeRange) }
       })
-
-      console.log('=== RECENT TRANSACTIONS ===')
-      console.log(res.data)
-
       return res.data.data.transactions || []
     },
     refetchInterval: 30000
   })
 
-  /*
-    ========================================================
-    FETCH BUDGET SUMMARY
-    ========================================================
-  */
-
   const { data: budgetSummary } = useQuery({
     queryKey: ['budget-summary'],
     queryFn: async () => {
       const res = await apiClient.get('/budgets/summary')
-
-      console.log('=== BUDGET SUMMARY ===')
-      console.log(res.data)
-
       return res.data.data
     },
     refetchInterval: 60000
   })
-
-  /*
-    ========================================================
-    FETCH MONTHLY TREND
-    ========================================================
-  */
 
   const { data: monthlyTrend } = useQuery({
     queryKey: ['monthly-trend', timeRange],
@@ -168,19 +124,9 @@ export default function DashboardHome() {
       const res = await apiClient.get('/analytics/monthly-trend', {
         params: { range: timeRange, months: getMonthsFromRange(timeRange) }
       })
-
-      console.log('=== MONTHLY TREND ===')
-      console.log(res.data)
-
       return res.data.data
     }
   })
-
-  /*
-    ========================================================
-    FETCH CATEGORY BREAKDOWN
-    ========================================================
-  */
 
   const { data: categoryBreakdown } = useQuery({
     queryKey: ['category-breakdown', timeRange],
@@ -188,10 +134,6 @@ export default function DashboardHome() {
       const res = await apiClient.get('/analytics/category-breakdown', {
         params: { range: timeRange }
       })
-
-      console.log('=== CATEGORY BREAKDOWN ===')
-      console.log(res.data)
-
       return res.data.data
     }
   })
@@ -206,29 +148,13 @@ export default function DashboardHome() {
     }
   })
 
-  /*
-    ========================================================
-    FETCH CATEGORIES
-    ========================================================
-  */
-
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
       const res = await apiClient.get('/categories')
-
-      console.log('=== CATEGORIES ===')
-      console.log(res.data)
-
       return res.data.data || []
     }
   })
-
-  /*
-    ========================================================
-    CALCULATE DASHBOARD STATS
-    ========================================================
-  */
 
   const totalBalance = dashboardStats?.totalBalance ?? wallets.reduce(
     (sum, wallet) => sum + (wallet.balance || 0),
@@ -238,166 +164,87 @@ export default function DashboardHome() {
   const totalExpenses = dashboardStats?.totalExpenses ?? 0
   const totalSavings = dashboardStats?.totalSavings ?? (totalIncome - totalExpenses)
 
-  /*
-    ========================================================
-    FINAL STATS OBJECT
-    ========================================================
-  */
-
   const calculatedStats = {
     totalBalance,
     totalIncome,
     totalExpenses,
     totalSavings,
-
     balanceChange: dashboardStats?.balanceChange ?? 0,
     incomeChange: dashboardStats?.incomeChange ?? 0,
     expenseChange: dashboardStats?.expenseChange ?? 0,
     savingsChange: dashboardStats?.savingsChange ?? 0
   }
 
-  /*
-    ========================================================
-    DEBUG LOGS
-    ========================================================
-  */
-
-  console.log('=== FINAL DASHBOARD STATS ===')
-  console.log(calculatedStats)
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-3 sm:px-6 lg:px-0">
 
-    {/* HEADER */}
+      {/* HEADER */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
-<div className="flex items-center justify-between">
-  <div>
-    <h1 className="text-2xl font-bold text-foreground">
-      Dashboard
-    </h1>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">
+            Dashboard
+          </h1>
 
-    <p className="text-muted mt-1">
-      Welcome back! Here's your financial overview.
-    </p>
-  </div>
+          <p className="text-muted mt-1">
+            Welcome back! Here's your financial overview.
+          </p>
+        </div>
 
-  <div className="flex items-center gap-4">
-    
-    {/* 🔽 Dropdown */}
-    <div className="w-44">
-      <Select value={timeRange} onValueChange={setTimeRange}>
-        
-        <SelectTrigger>
-          {/* 🔥 THIS is important — show selected label */}
-          <SelectValue />
-        </SelectTrigger>
+        <div className="w-full sm:w-44">
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
 
-        <SelectContent>
-          <SelectItem value="7d">Last 7 days</SelectItem>
-          <SelectItem value="30d">Last 30 days</SelectItem>
-          <SelectItem value="90d">Last 90 days</SelectItem>
-          <SelectItem value="1y">Last year</SelectItem>
-        </SelectContent>
-
-      </Select>
-    </div>
-
-  </div>
-</div>
+            <SelectContent>
+              <SelectItem value="7d">Last 7 days</SelectItem>
+              <SelectItem value="30d">Last 30 days</SelectItem>
+              <SelectItem value="90d">Last 90 days</SelectItem>
+              <SelectItem value="1y">Last year</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       {/* STATS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-        <StatCard
-          title="Total Balance"
-          value={calculatedStats.totalBalance}
-          change={calculatedStats.balanceChange}
-          icon={Wallet}
-          color="blue"
-        />
-
-        <StatCard
-          title="Total Income"
-          value={calculatedStats.totalIncome}
-          change={calculatedStats.incomeChange}
-          icon={ArrowUpRight}
-          color="green"
-        />
-
-        <StatCard
-          title="Total Expenses"
-          value={calculatedStats.totalExpenses}
-          change={calculatedStats.expenseChange}
-          icon={ArrowDownRight}
-          color="red"
-        />
-
-        <StatCard
-          title="Savings"
-          value={calculatedStats.totalSavings}
-          change={calculatedStats.savingsChange}
-          icon={TrendingUp}
-          color="purple"
-        />
+        <StatCard title="Total Balance" value={calculatedStats.totalBalance} change={calculatedStats.balanceChange} icon={Wallet} color="blue" />
+        <StatCard title="Total Income" value={calculatedStats.totalIncome} change={calculatedStats.incomeChange} icon={ArrowUpRight} color="green" />
+        <StatCard title="Total Expenses" value={calculatedStats.totalExpenses} change={calculatedStats.expenseChange} icon={ArrowDownRight} color="red" />
+        <StatCard title="Savings" value={calculatedStats.totalSavings} change={calculatedStats.savingsChange} icon={TrendingUp} color="purple" />
 
       </div>
 
       {/* CHARTS */}
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {/* MONTHLY TREND */}
-
-        <div className="card p-6">
-
-          <h3 className="text-lg font-semibold text-foreground mb-4">
+        <div className="card p-4 sm:p-6 overflow-hidden">
+          <h3 className="text-lg font-semibold mb-4">
             Income vs Expenses
           </h3>
 
-          <ResponsiveContainer width="100%" height={250}>
-
+          <ResponsiveContainer width="100%" height={isMobile ? 200 : 250}>
             <LineChart data={monthlyTrend?.trend || []}>
-
               <CartesianGrid {...chart.gridProps} />
-
               <XAxis dataKey="month" {...chart.axisProps} />
-
               <YAxis {...chart.yAxisProps} />
-
               <Tooltip {...chart.tooltipProps} />
 
-              <Line
-                type="monotone"
-                dataKey="income"
-                stroke={STATUS.income}
-                strokeWidth={2}
-              />
-
-              <Line
-                type="monotone"
-                dataKey="expenses"
-                stroke={STATUS.expense}
-                strokeWidth={2}
-              />
-
+              <Line type="monotone" dataKey="income" stroke={STATUS.income} strokeWidth={2} />
+              <Line type="monotone" dataKey="expenses" stroke={STATUS.expense} strokeWidth={2} />
             </LineChart>
-
           </ResponsiveContainer>
         </div>
 
-        {/* CATEGORY BREAKDOWN */}
-
-        <div className="card p-6">
-
-          <h3 className="text-lg font-semibold text-foreground mb-4">
+        <div className="card p-4 sm:p-6 overflow-hidden">
+          <h3 className="text-lg font-semibold mb-4">
             Spending by Category
           </h3>
 
-          <ResponsiveContainer width="100%" height={250}>
-
+          <ResponsiveContainer width="100%" height={isMobile ? 200 : 250}>
             <PieChart>
-
               <Pie
                 data={categoryBreakdown?.categories || []}
                 cx="50%"
@@ -405,114 +252,76 @@ export default function DashboardHome() {
                 outerRadius={80}
                 dataKey="amount"
               >
-
-                {(categoryBreakdown?.categories || []).map(
-                  (entry, index) => (
-                    <Cell
-                      key={index}
-                      fill={entry.color}
-                    />
-                  )
-                )}
-
+                {(categoryBreakdown?.categories || []).map((entry, index) => (
+                  <Cell key={index} fill={entry.color} />
+                ))}
               </Pie>
 
               <Tooltip {...chart.tooltipProps} />
-
             </PieChart>
-
           </ResponsiveContainer>
-
         </div>
+
       </div>
 
-      {/* BOTTOM SECTION */}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* WALLETS */}
+      {/* WALLET + BUDGET */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
 
         <div className="lg:col-span-2">
-
           <div className="card p-6">
 
             <div className="flex items-center justify-between mb-4">
-
-              <h3 className="text-lg font-semibold text-foreground">
-                Wallets
-              </h3>
+              <h3 className="text-lg font-semibold">Wallets</h3>
 
               <button
                 onClick={() => setShowWalletModal(true)}
-                className="btn-primary px-3 py-2 gap-2"
+                className="btn-primary px-2 sm:px-3 py-2 text-sm gap-2"
               >
                 <Plus className="w-4 h-4" />
-
                 Add Wallet
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {wallets.slice(0, 4).map((wallet) => (
-                <WalletCard
-                  key={wallet._id}
-                  wallet={wallet}
-                />
+                <WalletCard key={wallet._id} wallet={wallet} />
               ))}
-
             </div>
 
           </div>
         </div>
 
-        {/* BUDGETS */}
-
         <div className="card p-6">
 
           <div className="flex items-center justify-between mb-4">
-
-            <h3 className="text-lg font-semibold text-foreground">
-              Budget Status
-            </h3>
+            <h3 className="text-lg font-semibold">Budget Status</h3>
 
             {budgetSummary?.alertingCount > 0 && (
               <div className="flex items-center gap-1 text-yellow-400">
-
                 <AlertCircle className="w-4 h-4" />
-
                 <span className="text-sm">
                   {budgetSummary.alertingCount} alerts
                 </span>
-
               </div>
             )}
-
           </div>
 
           <div className="space-y-3">
-
             {budgetSummary?.budgets?.slice(0, 3).map((budget) => (
-              <BudgetProgress
-                key={budget._id}
-                budget={budget}
-              />
+              <BudgetProgress key={budget._id} budget={budget} />
             ))}
-
           </div>
 
         </div>
+
       </div>
 
       {/* RECENT TRANSACTIONS */}
-
       <div className="card p-6">
 
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
 
-          <h3 className="text-lg font-semibold text-foreground">
-            Recent Transactions
-          </h3>
+          <h3 className="text-lg font-semibold">Recent Transactions</h3>
 
           <div className="flex items-center gap-2">
 
@@ -521,13 +330,12 @@ export default function DashboardHome() {
               className="btn-primary px-3 py-2 text-sm gap-2"
             >
               <Plus className="w-4 h-4" />
-
-              Add Transaction
+              Add
             </button>
 
             <button
               onClick={() => navigate('/dashboard/transactions')}
-              className="text-primary hover:text-primary/80 text-sm"
+              className="text-primary text-sm"
             >
               View all
             </button>
@@ -535,14 +343,11 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        <RecentTransactions
-          transactions={recentTransactions}
-        />
+        <RecentTransactions transactions={recentTransactions} />
 
       </div>
 
-      {/* TRANSACTION MODAL */}
-
+      {/* MODALS */}
       {showTransactionForm && (
         <TransactionForm
           categories={categories}
@@ -551,8 +356,6 @@ export default function DashboardHome() {
           onSuccess={() => setShowTransactionForm(false)}
         />
       )}
-
-      {/* WALLET MODAL */}
 
       {showWalletModal && (
         <CreateWalletModal

@@ -60,15 +60,10 @@ export default function SettingsPage() {
           </div>
 
           <div>
-<<<<<<< HEAD
-            <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-            <p className="text-sm text-muted">Manage your account preferences</p>
-=======
             <h1 className="text-2xl font-bold text-white">Settings</h1>
             <p className="text-sm text-gray-400">
               Manage your account preferences
             </p>
->>>>>>> 14725bc393a94f20d71757ef3613e1cd09330412
           </div>
         </div>
       </div>
@@ -136,16 +131,11 @@ export default function SettingsPage() {
 
       {/* Danger Zone */}
       <div className="mt-8 p-6 rounded-xl bg-red-500/5 border border-red-500/20">
-<<<<<<< HEAD
-        <h3 className="text-sm font-medium text-red-400 mb-2">Danger Zone</h3>
-        <p className="text-xs text-muted mb-4">
-=======
         <h3 className="text-sm font-medium text-red-400 mb-2">
           Danger Zone
         </h3>
 
         <p className="text-xs text-gray-400 mb-4">
->>>>>>> 14725bc393a94f20d71757ef3613e1cd09330412
           Once you log out, you'll need to sign in again to access your account.
         </p>
 

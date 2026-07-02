@@ -1,9 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-function getSystemTheme() {
-  if (typeof window === 'undefined') return 'light'
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+function getDefaultTheme() {
+  return 'dark'
 }
 
 function applyThemeClass(theme) {
@@ -14,7 +13,7 @@ function applyThemeClass(theme) {
 export const useThemeStore = create(
   persist(
     (set, get) => ({
-      theme: getSystemTheme(),
+      theme: getDefaultTheme(),
 
       setTheme: (theme) => {
         applyThemeClass(theme)
@@ -37,9 +36,14 @@ export const useThemeStore = create(
     }),
     {
       name: 'theme-storage',
+
       onRehydrateStorage: () => (state) => {
-        const theme = state?.theme || getSystemTheme()
-        if (state) state.theme = theme
+        const theme = state?.theme || getDefaultTheme()
+
+        if (state) {
+          state.theme = theme
+        }
+
         applyThemeClass(theme)
       },
     }

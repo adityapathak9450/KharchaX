@@ -92,7 +92,9 @@ const Sidebar = ({ isOpen, onClose }) => {
                   to={item.path}
                   end={item.path === '/dashboard'}
                   onClick={onClose}
-                  className={({ isActive }) => (isActive ? 'nav-item-active' : 'nav-item')}
+                  className={({ isActive }) =>
+                    isActive ? 'nav-item-active' : 'nav-item'
+                  }
                 >
                   <item.icon className="w-4 h-4" />
                   {item.label}
@@ -116,7 +118,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         </div>
 
         <button
-          onClick={logout}
+          onClick={handleLogout}
           className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-400 hover:text-red-400"
         >
           <LogOut className="w-4 h-4" />
@@ -127,32 +129,34 @@ const Sidebar = ({ isOpen, onClose }) => {
   );
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 z-30 bg-overlay/50 backdrop-blur-sm"
-            onClick={onClose}
-          />
-
-          {/* Sidebar */}
+    <>
+      {/* Overlay (mobile only) */}
+      <AnimatePresence>
+        {isOpen && (
           <motion.div
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{
-              type: 'tween',
-              ease: 'easeOut',
-              duration: 0.25,
-            }}
-            className="fixed top-0 left-0 h-full w-60 z-40"
-          >
-            {sidebarContent}
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+            className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Sidebar */}
+      <motion.div
+        initial={{ x: '-100%' }}
+        animate={{ x: isOpen ? 0 : '-100%' }}
+        transition={{ type: 'tween', duration: 0.25 }}
+        className="
+          fixed top-0 left-0 h-full z-40
+          w-[80%] sm:w-72 lg:w-60
+          bg-background border-r border-border
+        "
+      >
+        {sidebarContent}
+      </motion.div>
+    </>
   );
 };
 

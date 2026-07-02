@@ -20,7 +20,7 @@ export function WalletCard({ wallet }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.02 }}
-      className="card-interactive p-5"
+      className="card-interactive p-5 overflow-hidden"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
@@ -74,10 +74,10 @@ export function WalletCard({ wallet }) {
       </div>
 
       {/* Accent border */}
-      <div 
-        className="absolute inset-x-0 bottom-0 h-1"
-        style={{ backgroundColor: wallet.color }}
-      />
+ <div
+  className="absolute top-0 left-0 right-0 h-0px"
+  style={{ backgroundColor: wallet.color }}
+/>
     </motion.div>
   )
 }

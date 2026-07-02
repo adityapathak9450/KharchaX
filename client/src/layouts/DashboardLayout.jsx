@@ -8,7 +8,6 @@ export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Initialize socket for real-time notifications
   useSocket();
 
   useEffect(() => {
@@ -27,13 +26,12 @@ export default function DashboardLayout() {
   };
 
   const handleSidebarClose = () => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
+    if (isMobile) setSidebarOpen(false);
   };
 
   return (
-    <div className="flex h-screen bg-canvas">
+    <div className="flex min-h-screen bg-canvas">
+
       {/* Sidebar */}
       <Sidebar
         isOpen={sidebarOpen}
@@ -42,16 +40,19 @@ export default function DashboardLayout() {
       />
 
       {/* Main content */}
-      <div className={`flex-1 transition-all duration-300 ${!isMobile && sidebarOpen ? 'ml-60' : 'ml-0'}`}>
+      <div className="flex-1 min-h-screen">
+
         <Header
           onMenuToggle={handleMenuToggle}
           isMobile={isMobile}
         />
-        
-        <main className="pt-16 p-6 min-h-screen bg-canvas overflow-y-auto">
+
+        <main className="pt-16 p-6 bg-canvas overflow-y-auto">
           <Outlet />
         </main>
+
       </div>
+
     </div>
   );
 }
